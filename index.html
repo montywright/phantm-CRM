@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Phantm Lead Engine</title>
+<style>
+  html, body { margin: 0; padding: 0; background: #FFF8EF; }
+  #boot { min-height: 100vh; display: grid; place-items: center; font-family: -apple-system, 'Segoe UI', sans-serif; color: #224B3B; font-size: 15px; }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prop-types/15.8.1/prop-types.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/recharts/2.12.7/Recharts.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"></script>
+</head>
+<body>
+<div id="root"><div id="boot">Loading the Lead Engine…</div></div>
+<script type="text/babel" data-presets="react">
+
+// ---- environment shims for static hosting (GitHub Pages) ----
+const { useState, useEffect, useMemo, useRef, useCallback } = React;
+const { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LabelList } = Recharts;
+
+// Persist via localStorage (per-browser) using the same storage API shape
+if (!window.storage) {
+  window.storage = {
+    async get(key) {
+      const v = localStorage.getItem("phantm:" + key);
+      if (v == null) throw new Error("key not found: " + key);
+      return { key, value: v };
+    },
+    async set(key, value) { localStorage.setItem("phantm:" + key, value); return { key, value }; },
+    async delete(key) { localStorage.removeItem("phantm:" + key); return { key, deleted: true }; },
+  };
+}
+
+
+/* ============================================================
+   PHANTM LEAD ENGINE v2
+   Data source: Elliot's "Customer Master Data 2026" sheet,
+   tab: Customer Master Lead List (tick boxes = stages).
+   Sync in: upload the .xlsx. Sync out: Export CSV.
+   Designed ADHD-first: one action at a time, zero clutter.
+   ============================================================ */
+
+const LOGO = "data:image/jpeg;base64,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";
+
+const C = {
+  forest: "#001A13",
+  pine: "#224B3B",
+  emerald: "#1CBA88",
+  deepEmerald: "#007A53",
+  salt: "#FFF8EF",
+  card: "#FFFFFF",
+  line: "rgba(0,26,19,0.10)",
+  faint: "rgba(0,26,19,0.05)",
+  ink60: "rgba(0,26,19,0.62)",
+  ink40: "rgba(0,26,19,0.42)",
+  red: "#C0492C",
+};
+
+const STAGES = [
+  { key: "new", label: "New", sheetCol: null },
+  { key: "contacted", label: "Contacted", sheetCol: "Contacted" },
+  { key: "responded", label: "Responded", sheetCol: "Responded" },
+  { key: "meeting", label: "Initial Mtg", sheetCol: "Initial Mtg" },
+  { key: "demoed", label: "Demo'd", sheetCol: "Demo'd" },
+  { key: "proposal", label: "Priced Prop", sheetCol: "Priced Prop" },
+  { key: "won", label: "Won", sheetCol: "Won" },
+  { key: "lost", label: "Lost", sheetCol: "Lost" },
+];
+const STAGE_IDX = Object.fromEntries(STAGES.map((s, i) => [s.key, i]));
+const OWNERS = ["Unassigned", "Elliot", "Ed", "Monty", "Chiara", "Robert", "Matt"];
+
+/* ---------- Action rules: warmest first ---------- */
+const RULES = {
+  proposal: { days: 7, prio: 6, verb: "Chase the proposal", why: (d) => d >= 900 ? "A priced proposal is out with no answer logged. Chase it." : `Proposal out ${d}d with no answer. Deals go cold fast here.`, template: "chase" },
+  demoed: { days: 3, prio: 5, verb: "Send pricing", why: (d) => d >= 900 ? "They've seen the demo but no proposal has gone out. Price it while it's warm." : `Demo'd ${d}d ago, no proposal sent. Price it while it's warm.`, template: "pricing" },
+  meeting: { days: 5, prio: 4, verb: "Book the demo", why: (d) => d >= 900 ? "You've met, but no demo is booked. Lock it in." : `Met ${d}d ago. Lock in a demo before momentum fades.`, template: "demo" },
+  responded: { days: 2, prio: 3, verb: "Book a meeting", why: (d) => d >= 900 ? "They replied, but no meeting has been booked." : `They replied ${d}d ago and there's no meeting booked.`, template: "meeting" },
+  contacted: { days: 4, prio: 2, verb: "Send follow-up", why: (d) => d >= 900 ? "Contacted, but they've never replied. One short nudge." : `No reply in ${d}d. A short nudge lifts response rates.`, template: "followUp" },
+  new: { days: 0, prio: 1, verb: "First outreach", why: () => "In the master list but never contacted.", template: "cold" },
+};
+
+const TEMPLATES = {
+  cold: (l) => ({
+    subject: `Packaging data for ${l.org}`,
+    body: `Hi ${l.first || "there"},\n\nPhantm is the packaging data layer for regulated supply chains. We help brands like ${l.org} structure packaging data at SKU level for compliance and reporting across APCO and PREP.\n\nWould you be open to a short intro call in the next week or two?\n\nBest,\n`,
+  }),
+  followUp: (l) => ({
+    subject: `Following up: packaging data for ${l.org}`,
+    body: `Hi ${l.first || "there"},\n\nJust following up on my earlier note. With APCO and PREP reporting tightening, having ${l.org}'s packaging data structured at SKU level is quickly becoming the baseline.\n\nHappy to share a quick look at how Phantm handles it. Would 20 minutes next week suit?\n\nBest,\n`,
+  }),
+  meeting: (l) => ({
+    subject: `Finding a time`,
+    body: `Hi ${l.first || "there"},\n\nGreat to hear from you. Keen to keep the momentum going. Would you have 20 minutes this week or next for an intro chat? Happy to work around your calendar.\n\nBest,\n`,
+  }),
+  demo: (l) => ({
+    subject: `Next step: a quick demo`,
+    body: `Hi ${l.first || "there"},\n\nThanks again for your time. The most useful next step is a short demo so you can see how ${l.org}'s packaging data would sit in the platform, material, mass and movement per SKU.\n\nWhat does your calendar look like this week?\n\nBest,\n`,
+  }),
+  pricing: (l) => ({
+    subject: `Pricing for ${l.org}`,
+    body: `Hi ${l.first || "there"},\n\nThanks for joining the demo. I'll put together pricing tailored to ${l.org}. Is there anything specific you'd like covered in the proposal before I send it through?\n\nBest,\n`,
+  }),
+  chase: (l) => ({
+    subject: `Checking in on the proposal`,
+    body: `Hi ${l.first || "there"},\n\nJust checking in on the proposal I sent through for ${l.org}. Happy to walk through any questions or adjust the scope if it helps.\n\nIs there anything holding things up on your end?\n\nBest,\n`,
+  }),
+};
+
+const actionLabel = (templateKey) => (templateKey === "chase" || templateKey === "followUp" ? "Send follow up" : "Draft email");
+
+/* ---------- helpers ---------- */
+const today = () => new Date().toISOString().slice(0, 10);
+const nowIso = () => new Date().toISOString();
+const fmtTs = (ts) => {
+  if (!ts) return "";
+  const d = new Date(ts);
+  if (isNaN(d)) return String(ts);
+  const date = d.toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "2-digit" });
+  return ts.length > 10 ? `${date} · ${d.toLocaleTimeString("en-AU", { hour: "2-digit", minute: "2-digit", hour12: false })}` : date;
+};
+const daysSince = (iso) => (!iso ? 999 : Math.max(0, Math.floor((new Date(today()) - new Date(String(iso).slice(0, 10))) / 86400000)));
+const clean = (v) => {
+  if (v === true) return "TRUE";
+  if (v === false || v == null) return "";
+  const s = String(v).trim();
+  return /^(tbc|n\/a|na|-|#value!|false)$/i.test(s) ? "" : s;
+};
+const isTick = (v) => v === true || /^true$/i.test(String(v || "").trim());
+const leadId = (org, email, first, last) => (org + "|" + (email || first + last)).toLowerCase().replace(/\s+/g, "");
+
+/* ---------- sheet parsing ---------- */
+function rowsToLeads(rows) {
+  const map = new Map();
+  for (const r of rows) {
+    const org = clean(r["Organisation"] || r["Organization"] || r["Company"]);
+    if (!org) continue;
+    const first = clean(r["First name"] || r["First Name"]);
+    const last = clean(r["Surname"] || r["Last name"] || r["Last Name"]);
+    const email = clean(r["Email Address"] || r["Email"]).toLowerCase().replace(/^true$/i, "");
+    const id = leadId(org, email, first, last);
+    let stage = "new";
+    let note = "";
+    for (const s of STAGES) {
+      if (!s.sheetCol) continue;
+      const v = r[s.sheetCol];
+      if (isTick(v)) stage = s.key;
+      else if ((s.key === "won" || s.key === "lost") && clean(v) && !/^(true|false)$/i.test(String(v).trim())) note = clean(v);
+    }
+    const lt = clean(r["Last touch"] || r["Last Touch"] || r["Last contact"]);
+    const lead = {
+      id, org, first, last,
+      title: clean(r["Job Title"] || r["Title"]),
+      email, other: clean(r["Other Contacts"]), sector: clean(r["Sector"]),
+      stage, pd: isTick(r["In Pipedrive"]),
+      sheetNote: note,
+      sheetTouch: /^\d{4}-\d{2}-\d{2}/.test(lt) ? lt.slice(0, 10) : null,
+    };
+    const prev = map.get(id);
+    if (prev) {
+      if (STAGE_IDX[lead.stage] > STAGE_IDX[prev.stage]) prev.stage = lead.stage;
+      for (const k of ["first", "last", "title", "email", "other", "sector", "sheetNote", "sheetTouch"]) if (!prev[k] && lead[k]) prev[k] = lead[k];
+      prev.pd = prev.pd || lead.pd;
+    } else map.set(id, lead);
+  }
+  return [...map.values()];
+}
+
+function parseWorkbook(wb, onlyMaster) {
+  let rows = [];
+  const names = onlyMaster && wb.SheetNames.includes("Customer Master Lead List") ? ["Customer Master Lead List"] : wb.SheetNames;
+  for (const name of names) {
+    const aoa = XLSX.utils.sheet_to_json(wb.Sheets[name], { header: 1, defval: "" });
+    const hIdx = aoa.findIndex((row) => row.some((c) => /organisation|organization/i.test(String(c))));
+    if (hIdx === -1) continue;
+    const headers = aoa[hIdx].map((h) => String(h).trim());
+    for (let i = hIdx + 1; i < aoa.length; i++) {
+      const obj = {};
+      headers.forEach((h, j) => { if (h) obj[h] = aoa[i][j]; });
+      rows.push(obj);
+    }
+  }
+  return rowsToLeads(rows);
+}
+
+function nextActionFor(lead) {
+  if (lead.stage === "won" || lead.stage === "lost") return null;
+  if (lead.snoozedUntil && lead.snoozedUntil > today()) return null;
+  const rule = RULES[lead.stage];
+  if (!rule) return null;
+  const d = daysSince(lead.lastTouch);
+  if (lead.stage === "new") return lead.email ? { ...rule, days: d, cold: true } : null;
+  if (d < rule.days) return null;
+  return { ...rule, days: d, cold: false };
+}
+
+/* ---------- seed: real rows from Customer Master Lead List ----------
+   [org, first, last, title, email, other, sector, stage, inPipedrive, note] */
+const SEED_ROWS = [["7-Eleven","","","","","","","new",0,""],["a2 milk","Edith","Bailey","","","","Food&Bev","contacted",0,""],["Abbe Packaging","Paul","Camilleri","","paul.c@abbe.com.au","","","new",0,""],["Accor","David","Young","","david.young@accor.com","","","new",0,""],["Accor","David","Young","","","","","new",0,""],["Adorn Cosmetics","Anne","Petracca","","anne@adorncosmetics.com.au","","","new",0,""],["Aesop","Stephen","Wallace","Head of Product Development and Packaging","stephen.wallace@aesop.com","","","new",0,""],["Aesop","Stephen","Wallace","Head of Packaging","","","","new",0,""],["Air New Zealand","Emma","Harding","","emma.harding@airnz.co.nz","","","new",0,""],["AJE","Tom","Mort","","tmort@carbinefm.com.au","","","new",0,""],["al.ive body®","Irma","Santucci","","irma@alivebody.com.au","","","new",0,""],["Alchemy Cordials","Michael","Bishop","CEO","enquiries@alchemycordial.com.au","","Food Service","responded",0,""],["Aldi","Peter","Mallis","Head of ARL","peter.mallis@aldi.com.au","","Supermarket","lost",1,""],["Aldi","Matilda","Gable","Executive Manager, National Sustainability","","","","new",0,""],["Aldi Supermarket","Pamela","Mikschofsky","Executive Manager Corporate Responsibility - Packaging and Responsible Sourcing","pamela.mikschofsky@aldi.com.au","","","new",0,""],["AlkaPower Water","Steve","Petaris","CEO Founder","","","FMCG","contacted",0,""],["All Kinds","Martina","Bagnulo","Production and Product Coordinator","martina.bagnulo@allkinds.com","","Apparal","new",0,""],["Allies Juice","Braian","Szwarchberg-Poch","Founder","","Jessica Neave","FMCG","responded",0,""],["Allkinds","Carla","Snellen","","carla.snellen@allkinds.com","","","new",0,""],["Amazon","Gus","Recaman","Sustainability Manager","grecaman@amazon.com","","E-Commerce","proposal",0,""],["Amazon Australia","Gus","Recaman","","grecaman@amazon.com","","","new",0,""],["Amazon Australia","Gus","Recaman","Sustainability Manager","","","","new",0,""],["AO","Matthew","Nicholas","Sustainability Manager","mnicholas@tennis.com.au","","Cosmetics","proposal",0,""],["AOC","Warwick","Waters","","warwick.waters@olympics.com.au","","","new",0,""],["AOC / Brisbane 2032","Warwich","Waters","","","","","new",0,""],["APS Packaging","Nick","Browne","","nick@apspackaging.co.nz","","","new",0,""],["Arnotts","Anna","Lowndes","Head of Packaging","anna_lowndes@arnotts.com","","FMCG","lost",1,""],["Asahi","Anesh","Sethuraman","Circular Ventures","anesh.sethuraman@asahibeverages.com","","","new",0,""],["Asahi","Nathan","Jackson","Circular Ventures","nathan.jackson@asahibeverages.com","","","new",0,""],["Asahi","Anita","Holdsworth","General Manager Quality & Technical Services","","","","new",0,""],["Asahi Beverages","Anesh","Sethuraman","Circular Ventures","anesh.sethuraman@asahibeverages.com","","","new",0,""],["Asahi Beverages","Anita","Holdsworth","","anita.holdsworth@asahibeverages.com","","","new",0,""],["ASAP Skin Products","Carley","Stewart","","carley@asapskinproducts.com","","","new",0,""],["Assembly Label","","","","","","Apparal","new",0,""],["Atelier","Nick","Benson","","benson@atelier.co","","","new",0,""],["Australian Retailers Association","Fleur","Brown","","fleur.brown@retail.org.au","","","new",0,""],["Aviation Sustainability Forum","Freddie","Rollason","","rollasonf@gmail.com","","","new",0,""],["Baker's Delight","Caroline","Fitzgerald","Project Coordinator","","","","new",0,""],["Bakers Delight","Elise","Gillespie","Joint CEO","elise.gillespie@bakersdelight.com.au","","","new",0,""],["Bakers Delight","Andrew","Pajic","Head of Store Solutions and Sustainability","andrew.pajic@bakersdelight.com.au","Elise Gilepse","Food&Bev","proposal",0,""],["Bapcor Limited","Lea","Lewin","ESG Manager","lea.lewin@bapcor.com","","","new",0,""],["Baresop","Prisca","Ongonga-Daehn","Founder","prisca@baresop.com","","","new",0,""],["Beak & Johnson","","","","","","FMCG","new",0,""],["Bega","Adam","McNamara","Head of Sales","adammcnamara@bega.com.au","","FMCG","contacted",0,""],["Bega Group","Matthew","Atkins","","matthew.atkins@bega.com.au","","","new",0,""],["Biogone","Ross","Headifen","","info@biogone.com.au","","","new",0,""],["Biopak","Lea","Maguero","Head of Sustainbility","lea@biopak.com.au","Richard Fine","Packaging","demoed",1,""],["Birdstone Collective","Iain","Blair","","iain.blair@birdstone.com.au","","","new",0,""],["Bond-Eye","Marine","Simiana","Merchandise Ops & Production","martine@bond-eye.com.au","Steve Philpott","Apparal","proposal",1,""],["Bondi Sands","Shauri","Wilson","Owner/CEO","shaunw@bondisands.com.au","","Personal Care","contacted",0,""],["Bondi Wash","Jemma","Everingham","","jemma@bondiwash.com.au","","","new",0,""],["Bulla Park","Georgia","Beattie","","georgia@bulla.farm","","","new",0,""],["Bulla Park","Georgia","Beattie","CEO & Managing Director","","","","new",0,""],["Bundaberg Drinks","Stuart","Williamson","NAM","sj.williamson@bundaberg.com","","FMCG","contacted",1,""],["Bunnings","Misbah","Khan","","mkhan@bunnings.com.au","","","new",0,""],["Bunnings","Samantha","Montepegue","Packagin Analyst","samantha.montepeque@bunnings.com.au","Keith Hepburn","Retail","responded",0,""],["Bunnings","Misbah","Khan","Packaging Optimisation Manager","","","","new",0,""],["Carman's Kitchen","Shweta","Joshi","","","","","new",0,""],["Cawarra","Jolene","Taylor-Jones","","jolene@cawarra.com.au","","","new",0,""],["CCEP","Aimy","Johnson","Snr NPD mgr","ajohnston@ccep.com","Scott Mendlson, Ombalene Evans","FMCG","lost",1,""],["Cercle","Patrick","","Founder","","","","new",0,""],["Chemist Warehouse","","","","","","Retail","new",0,""],["Chep","Edward","Truong","Marketing Manager","edward.truong@chep.com","","Logistics","responded",0,"Keen for a Captr demo"],["Coffee Supreme","Andrew","Low","CEO","","","","new",0,""],["Coles","Pooja","Nayak","(YFY Jupiter consultant)","pooja.nayak@coles.com.au","","","new",0,""],["Coles","Ellen","McOMish","","ellen.mcomish@coles.com.au","","","new",0,""],["Coles","","","","","","","new",0,""],["Corban & Blair","Gillian","Corban","Founder","","","","new",0,""],["Corban and Blair","Katherine","Pengilly","","katherine@corbanblair.com.au","","","new",0,""],["CosmeticsNZ","Angela","Buglass","","angela@abconsulting.nz","","","new",0,""],["COSTA Group","","","Tech manager","","","Food Service","new",0,""],["Cotton On Group","Penni","Donaldson","","penni.donaldson@cottonon.com.au","","","new",0,""],["Country Road","Fred","Lemonie","Chief Sourcing & Supply Chain Officer","","Ericka Martin","Apparal","proposal",0,""],["Country Road Group","Brodi","Coghlan","","brodi.coghlan@countryroadgroup.com.au","","","new",0,""],["CUB","Adrian","Benson","Head of Manufacturing ANZ","","","","new",0,""],["Daikin","Ryan","Philip","","rphilp@daikin.co.nz","","","new",0,""],["Daniels Donuts","Doreen","See","","doreen.see@danielsdonuts.com.au","","","new",0,""],["Danone","Nolwenn","Thevenot","Packaging Lead","nolwenn.thevenot@danone.com","Kathy Cavill","Food&Bev","proposal",0,""],["Danone ANZ","Maria","Venetoulis","","maria.venetoulis@danone.com","","","new",0,""],["Danone ANZ","Nolwenn Thevenot","Neveu","Product & Packaging Information / Sustainability Manager","nolwenn.thevenot@danone.com","","","new",0,""],["Danone ANZ","Kathy","Cavill","General Manager","","","","new",0,""],["Darrell Lea","","","","","","FMCG","new",0,""],["David Jones","Dana","King","","dana.king@davidjones.com.au","","","new",0,""],["David Jones","Dana","King","Sustainability Manager","","","","new",0,""],["De Lorenzo","leonie","heslop","","leonieh@delorenzo.com.au","","","new",0,""],["DeBortelli","Rob","Glastonbury","Operations Manager","rob_glastonbury@debortoli.com.au","Darren De Bortoli","Food&Bev","proposal",0,""],["Dineamic","Belinda","Groves","","belinda.groves@dineamic.com.au","","","new",0,""],["Dineamic","Belinda","Groves","","","","","new",0,""],["District Australia","Vanessa","Masson","","vanessam@district.com.au","","","new",0,""],["Dollar Sweets","Miranda","Higgens","Managing Director","mhiggins@dollarsweets.com","","Food&Bev","proposal",0,""],["Driscoll's","Via Michael Starke","","","","","","new",0,""],["Driscolls","Jon","Gleeson","GM","jon.gleeson@driscolls.com.au","","Food&Bev","proposal",0,""],["Ecoware","Victoria","Frazer","Marketing Director","victoria@pactrading.com.au","Kristie Huthernan","Packaging","demoed",1,""],["Edenvale Foods","","","","","","","new",0,""],["Eleven Australia","Rob","Gattuso","","rob@elevenaustralia.com","","","new",0,""],["Emma Lewisham","Marcia","Mourao","Operations and Sustainability Manager","marcia@emmalewisham.co.nz","","","new",0,""],["Emma Lewisham","Márcia","Mourão","Operations and Sustainability Manager","marcia@emmalewisham.com","","","proposal",0,""],["Emma Lewisham","Emma","Lewisham","Founder & CEO","","","","new",0,""],["Emma Lewisham 2.0","Marcia","","Sustainability + Ops Manager","","","","new",0,""],["Endeavour Group","Jennifer","Foo","Head of Sustainability","jennifer.foo@edg.com.au","","Bottle Shop","lost",1,""],["Enviromesh","Maan","Shekhawat","Head of Digital + Marketing","","","","new",0,""],["Epson","Fatida","Un","Sustainability Manager","","","","new",0,""],["Epson Australia","Fatida","Un","Environment and Sustainability Manager","fun@epson.com.au","","","new",0,""],["Eustralis","Ben","Loder","Warehouse Manager","","","","new",0,""],["Evendale Foods","Stuart","Picken","","stuart@edenvalefoods.com.au","","","new",0,""],["Fantastic Furniture","Marino","Mystegniotis","Head of Quality","mmystegniotis@fantasticfurniture.com.au","","","new",0,""],["Farmer Joe Museli","Scott","Tulloch","Founder","","Sally","FMCG","responded",0,""],["Fibre Cycle","","","","","SEQ","Petfood","new",0,""],["Fisher & Paykel","Andrew","McDougall","PD Engineer - Technical Leader, Sustainability Focus Product Development","andrew.mcdougall@fisherpaykel.com","","","new",0,""],["Fisher & Paykel","Andrew","McDougal","Tech Lead - Sustainability","","","","new",0,""],["Fitcover","Nova","Ward","Founder + CEO","","","","new",0,""],["Fonda Mexican","Tim","McDonald","","tim@fondamexican.com.au","","","new",0,""],["Fonda Mexico","Tim","McDonald","","tim@fondamexican.com.au","","","new",0,""],["Fonda/Lucky's","Tim","McDonald","Co-Founder","","","","new",0,""],["Forage Company Brands","Jeroen","Rodenstein","","jeroen@foragebrands.com.au","","","new",0,""],["Fowles Winery","Sam","Atherton","","","","","new",0,""],["frank body","Alex","Boffa","Co-founder / COO","alex@frankbody.com","","","new",0,""],["Frank Body","Alex","Boffa","COO","","","","new",0,""],["Frank Green","Benjamin","Young","CEO","ben@frankgreen.com.au","","FMCG","contacted",0,""],["Freedom Furniture NZ","Zoe","Hertelendi","Managing Director","zoe_hertelendi@freedomfurniture.co.nz","","","new",0,""],["Fresh Fodder","","","","","Orange","FMCG","contacted",0,""],["Freudenberg Home and Cleaning Solutions","Sandra","Kelly","","sandra.kelly@fhp-ww.com","","","new",0,""],["Frosty Boy","Andrea","Thomson","Head of Cont Improv","andrea.thomson@frostyboy.com","Angela Hausmann","Food Service","proposal",1,""],["Fudo","Ed","Phillips","","edphil2@outlook.com","","","new",0,""],["Fugo","","","","","","","new",0,""],["Ful Foods","Julia","Streuli","","julia@fulfoods.com","","","new",0,""],["Gimarra Dairy","Lincoln","Gallagher","Gimarra Dairy","lincolng@gimarradairy.com.au","Jeoffrey Johnson","FMCG","contacted",0,""],["Glen Dimplex","Amy","Barry","","","","","new",0,""],["Glen Dimplex","Amy","Barry","Marketing Manager","amy.barry@glendimplex.com.au","David Woodward","","proposal",0,""],["Glen Dimplex","Amy","","Head of Marketing","","","","new",0,""],["Go TO Skincare","Anna","Crowley","","anna@gotoskincare.com","","","new",0,""],["Go-To Skincare Pty Ltd","Kerry","Guthrie","Group Product Manager","kerry@gotoskincare.com","","","new",0,""],["Goodman Fielder","Craig","Walker","Senior Packaging Manager","craig.walker@goodmanfielder.com.au","","","new",0,""],["Goodman fielder","Paul","Finucci","Head of Supply Chain","","","FMCG","contacted",1,""],["Gospel Resources Ltd","Alex","Gillan","","alexgillan1@gmail.com","","","new",0,""],["Great Wrap","Julia","Kay","Co-Founder","","","","new",0,""],["Greenspace","Ben","Kirby","Farm Network Engineer","","","","new",0,""],["GWF (George Western Foods)","","","Head Packaging","","","FMCG","contacted",0,""],["Hallmark","Kristin","Edie","","kristin.edie@hallmark.com","","","new",0,""],["Hanes","Stephanie","Nicdao","Sustainability Lead","stephanie.nicdao@hanes.com","Sheree Maguire","Apparal","proposal",0,""],["Hanes Australasia","Sheree","Maguire","General Manager, Sustainability","sheree.maguire@hanes.com","","","new",0,""],["Headstart","Andrew","Hendy","CEO","","","","new",0,""],["Headstart International","Andrew","Hendy","CEO","andrew@headstartint.com","","","new",0,""],["Hello Fresh","","","","","Bris","Food Service","new",0,""],["HP","Olivia","West","Sustainability Manager","olivia.west1@hp.com","","Samara Giles","responded",0,""],["Hunter Amenities","Sue","McDonald","","smcdonald@hunteramenities.com","","","new",0,""],["Hunter Amenities","Titilope","Omidiran","","","","","new",0,""],["IKEA","Renea","Robson","Country Sustainability Manager","renea.robson@ikea.com","Natalie Baker","Home Goods","new",0,""],["Inskin Cosmedics","maria","cocciolone","","marie@inskincosmedics.com","","","new",0,""],["JasonL","Zac","Zinman","","zac@jasonl.com.au","","","new",0,""],["JasonL","Zac","Zinam","COO","","","","new",0,""],["JB Hi-Fi","Ronald","Tan","Group Sustainability Manager","ronald.tan@jbhifi.com.au","","","new",0,""],["JB Hi-Fi / Good Guys","Ronald","Tan","Group Sustainability Manager","","","","new",0,""],["JBS Meat","","","","","","FMCG","new",0,""],["JDE","","","","","","FMCG","new",0,""],["JET technologies","Daniel","Malki","General Manager","dmalki@jet-ap.com","","Packaging","responded",0,""],["Kerry Ingredients","Lisa","Chew Curran","Head of R&D","","","FMCG","new",0,""],["Kevin Murphy","Ebony","Fowler","","efowler@kevinmurphy.com.au","","","new",0,""],["KEVIN.MURPHY","Ebony","Fowler","","efowler@kevinmurphy.com.au","","","new",0,""],["Kewpie","Aimi","Nakayama","Sales Ops","aimi_nakayama@kewpie-australia.com","Patricia","FMCG","proposal",1,""],["Kinrise Ozpak","","","GM","","","Packaging","new",0,""],["Kmart","Caroline","Vu","Sustainability Manager","caroline.liew@kmart.com.au","Mao Mao","Home Goods","proposal",0,""],["Kmart","Blake","Lindley","Head of Sustainability","","","","new",0,""],["Koala","Robert","Lee","Director Product Sustainability and Ethical Supply Chains","r.lee@koala.com","","","new",0,""],["Koala","Robert","Lee","Director Product Sustainability & Ethical Supply Chains","","","","new",0,""],["Koala Mattress","Mark","Mitchinson","","","","","new",0,""],["Koskela","Kamelia","Halim","Product & Project","","","","new",0,""],["Kraft","Maree","Rivero","Legal Compliance Operations & Climate Reporting Lead","maree.rivero@kraftheinz.com","Kara Sach","Food&Bev","contacted",0,""],["L'Oreal","Olivia","Whitaker","","olivia.whitaker@loreal.com","","","new",0,""],["L'Oreal","Laura","Barosso","Sustainability Lead","laura.barroso@loreal.com","Olivia Whitaker","Cosmetics","proposal",0,""],["L'Oreal","Marie","Carroll","Chief Corporate Affairs + Engagement Officer","","","","new",0,""],["Lactalis","Angela","Burr","GM CSR","","Angela Burr","FMCG","responded",1,""],["Lady Falcon Coffee (USA)","Buffy","Maquire","Owner","","","","new",0,""],["Lego","Troy","Taylor","CEO","troy.taylor@lego.com","","Children's Toys","contacted",0,""],["Lego Australia Pty Ltd","Troy","Taylor","","troy.taylor@lego.com","","","new",0,""],["Legrand Australia","Palash","Nandy","Chief Executive Officer","palash.nandy@legrand.com","","","new",0,""],["Legrand Australia","Eresha","Chandrathilake","Corporate Social Responsibility","eresha.chandrathilake@legrand.com>","Palash Nandy","Construction","proposal",0,""],["Leif","Amanda","Jennings","","aj@leifproducts.com","","","new",0,""],["Linen House","Claire","Duncan","","claire@linenhouse.com.au","","","new",0,""],["Linen House","Scott","Duncan","","sd@linenhouse.com.au","","","new",0,""],["Linen House","Jonnie","McLean","","jmclean@linenhouse.com.au","","","new",0,""],["Linen House","Scott","Duncan","Strategy Manager","","","","new",0,""],["Loco Love Chocolate","","","","","Byron","FMCG","new",0,""],["Logitech","Damian","Lepore","Cluster Head","dlepore@logitech.com","Sara Hleihel","Samara Giles","proposal",0,""],["Lyka","Andy","Baxter","Head of Operations","andy.baxter@lyka.com.au","Gabriel Guedes","Pet Food","proposal",0,""],["Lyka","Corey","Won","Operations Manager","","","","new",0,""],["Madura Tea","","","","","","FMCG","new",0,""],["Maltra Foods","Jack","Eyedlish","CEO","","","Food Service","new",0,""],["Marina Bay Sands","Meredith","Beaujean","","meridith.beaujean@marinabaysands.com","","","new",0,""],["Marina Bay Sands","Meredith","Beaujean","Executive Director, Sustainability","","","","new",0,""],["Market Lane","Suzannah","Hoban","","suzie@marketlane.com.au","","","new",0,""],["Market Lane","Suzzanah","Hoban","Head of Marketing, Comms, Sustainability","","","","new",0,""],["Mars Food + Nutrition","Bill","Heague","","bill.heague@effem.com","","","new",0,""],["Master Instruments","Leigh","Riley","","leighr@master-instruments.com.au","","","new",0,""],["McCafe","Jared","Chapman","Head of McCafe","","","QSR","responded",1,""],["McPherson's","Anthony","Ogilvie","Sustainability Manager","","","","new",0,""],["McPhersons Group","Megan","Cracknel","Mktg","","","FMCG","proposal",1,""],["MECCA","Annabel","White","","annabel.white@mecca.com.au","","","new",0,""],["Mecca","Claudia","Campani","Product Development Packaging & Special Projects Lead","","","","new",0,""],["MECCA Brands","Kate","Forbes","","kate.forbes@mecca.com.au","","","new",0,""],["Mecca Cosmetica","Claudia","Campani","","claudia.campani@mecca.com.au","","","new",0,""],["Medik8 Ltd","Aelxandra","Florea","Head of Sustainability","alexandra.florea@medik8.com","","","new",0,""],["Melb Park","Erick","Vilaceran","Sustainability Advisor","","Vicki","Stadiums","proposal",0,""],["Melbourne Park","Erick","Villaceran","","evillaceran@mopt.vic.gov.au","","","new",0,""],["Metricon","Adam","Selvay","","adamselvay@metricon.com.au","","","new",0,""],["Metricon","Adam","Selvay","Head of Sustainability","","","","new",0,""],["Mitre10","Sammara","Giles","Sustainability Manager","sammara.giles@mitre10.com.au","","Retail","responded",0,""],["Mondelez","","","","","","FMCG","new",0,""],["Montagne Jeunesse","Helen","Page","","helen.page@montagnejeunesse.com","","","new",0,""],["Moose Toys","Eva","Daly","Global Corporate Communications Manager","eva.daly@moosetoys.com","","","new",0,""],["Moose Toys","Greg","Simmons","Director of Sustainable Product Development","greg.simmons@moosetoys.com","","","new",0,""],["Moose Toys","Greg","Simmons","Director - Sustainable Development","","","","new",0,""],["Mountain Blue","Andrew","Bell","","andrew@mountainblue.com.au","","","new",0,""],["Mountain Blue","Andrew","Bell","CEO","","","","new",0,""],["Mr Whippy","Jeff","Deeth","Head of Sales","","","Food Service","contacted",0,""],["Multisteps","","","CEO Founder","","","Packaging","new",0,""],["MYER","Natalie","Uren","Sustainability Manager","natalie.uren@myer.com.au","Miriam Saliba","","proposal",0,""],["N.A.V.I. Co. Global","Gilad","Sadan","","gilad@navicoglobal.com","","","new",0,""],["NAFDA","Mark","Powell","Head of Mktg","","","Distributor","new",0,""],["Napoleon Perdis","Kate","Squires","","kate.squires@napoleonperdis.com","","","new",0,""],["Natrio","Jose","Falk","","jlfalk@natrio.com","","","new",0,""],["Nature's Organics","Justin","Dowel","Managing Director","justin.dowel@naturesorganics.com.au","","","new",0,""],["NetworkPak","","","","","","","new",0,""],["Nexba Soft Drinks","","","CEO Founder","","","FMCG","new",0,""],["Niccolo","Danny","Agocs","","danny@niccolo.com.au","","","new",0,""],["Niccolo","Scott","Nicholson","Operations Manager","","","","new",0,""],["Norco","Michael","Hampson","CEO","","","FMCG","new",0,""],["Norwood","Adam","Coyle","Innovation Manager","adam.coyle@norwood.com.au","Fran Coyle","Printing","proposal",1,""],["Norwood Industries","Adam","Coyle","","adam.coyle@norwood.com.au","","","new",0,""],["Norwood Industries 2.0","Adam","Coyle","Creative Manager","","","","new",0,""],["Nutrimetics","Angela","Woodburn","","awoodburn@nutrimetics.com.au","","","new",0,""],["OEE - Overall Equipment Efficiency","Kevin","Butler","Managing Director","kevin@oee.equipment","","","new",0,""],["Officeworks","Alex","White","","awhite@officeworks.com.au","","","new",0,""],["Opal","Tim","Lawes","Procurement & Supply Chain Manager","tim.lawes@opalanz.com","Lauren Wood","Packaging","proposal",1,""],["Origin Tea","Chris","Seaton","Owner CEO","","","FMCG","responded",0,""],["PAC Trading","Kristie","Huthnance","ESG Manager","kristie.h@pactrading.com.au","","","new",0,""],["PACT (Synergy)","","","","","","Packaging","new",0,""],["Papa Salt Gin","Terry","Squadrido","Head of design","terry@squad.studio","","Alcohol","meeting",0,""],["Patties Group","Michelle","Doyle","QSR sales","","","Food Service","new",1,""],["Pefection Fresh","Michael","Liddell","Head Sustainability","michael.liddell@perfection.com.au","Luke Gibson","FMCG","contacted",1,""],["Pentana Solutions","Steve","Kloss","","steve.kloss@pentanasolutions.com","","","new",0,""],["Pet Circle","Edwina","Kent","Logistics Manager","","","","new",0,""],["pH Factor","Rita","Sellars","","rita@phfactor.com.au","","","new",0,""],["PharmaGreen","Jake","Golding","","jake@pharmagreen.com.au","","","new",0,""],["Phillips Family","Andrew","Phillips","","andrew@theflippers.com.au","","","new",0,""],["Picha","Tom","Munro","General Manager","","","","new",0,""],["Planet Innovation","Jeremy","Stimson","","jeremy.stimson@planetinnovation.com.au","","","new",0,""],["Planet Innovation","Jeremy","Stimson","Product Manager/ Designer","","","","new",0,""],["Plant Innovation","Jeremy","Stimson","Design & Product Lead","jeremy.stimson@planetinnovation.com.au","","Medical","proposal",0,""],["Plascare","Andrew","Lee","","alee@plascare.com.au","","","new",0,""],["Pollination Group","Phil","Cohn","","","","","new",0,""],["Priceline","Manny","Manatakis","","manny.manatakis@api.net.au","","","new",0,""],["Priceline","Manny","Diego","Sustainability Data Analyst","","","","new",0,""],["Primo Smallgoods","Nathan","Leong","Head of Packaging","nathan.leong@primofoods.com.au","Jamie Eastley","FMCG","responded",1,""],["Pt Leo Estate","Josep","Espuga","Head Chef","","","","new",0,""],["Qantas","Tanzy","Owen-Fitzgerald","Sustainability Manager","tanzy.owen@qantas.com.au","","Travel","proposal",0,""],["Qantas","Matthew","Davis","Product Design + Development","","","","new",0,""],["Real Pet Food Co","Todd","Davey","Head of Field Sales","","","Pet","contacted",0,""],["Reece Group","Fiona","Kelly","Packaging and Sustainability Development Manager","","","","new",0,""],["Reece Plumbing","Fiona","Kelly","","fiona.kelly@reece.com.au","","","new",0,""],["Refresco Soft Drinks","Geoff","Erby","CEO","geoff.erby@refresco.com","","FMCG","contacted",0,""],["Rejenerate","Jen","Gearing","","jen@rejenerate.co","","","new",0,""],["Remedy Drinks","Chris","Gillard","CEO","","","FMCG","new",0,""],["Rocc Naturals","Prue","Dimond Rocch","","prue@roccnaturals.com.au","","","new",0,""],["Sabrands Foods Rosella","David","Spitxer","CEO","","","FMCG","new",0,""],["Scalzo Foods","Sally","Andren","","sandren@scalzofoods.com.au","","","new",0,""],["Scalzo Foods","Cathy","Scalzo","Founder","","","","new",0,""],["Singapore Fashion Council","Ting Ting","Zhang","","tingtingzhang@sgfashioncouncil.org.sg","","","new",0,""],["SMYA","Janel","Tumpalan","Finance and Sustainability","janel.tumpalan@smya.com.au","","Packaging","contacted",0,""],["Snapchat","","","","","","","new",0,""],["Snell","Sam","Galloway","Director","samg@snell.co.nz","Paul Grant","Packaging","proposal",0,""],["Soulfresh","Maurice","McGrath","CEO","","","FMCG","contacted",1,""],["Spiral Foods Bonsoy","","","CEO","","","FMCG","new",0,""],["Sprout Stack","Francisco","Caffarena","","francisco@sproutstack.co","","","new",0,""],["Sprout Stack","Francisco","Caffarena","Co-Founder","","","","new",0,""],["Stackpack","Michael","Starke","","michael@stackpack.au","","","new",0,""],["Stackpack","Michael","Stark","Owner","","","","new",0,""],["Star Group","Nicholas","Payne","Head of ESG & Quality","nicholas.payne@starpackaging.com.au","David Wright","Packaging","proposal",0,""],["Star Packaging","Nicholas","Payne","","nicholas.payne@starpackaging.com.au","","","new",0,""],["Starbucks APAC","Katrina","Lawles","Head of Marketing","","","","new",0,""],["Starbucks Australia","Chris","Garlick","","cgarlick@starbucks.com.au","","","new",0,""],["Starbucks Australia","Pete","White","","","","","new",0,""],["Starbucks Australia","Peter","White","Head of Supply Chain, Sustainability and Coffee Engagement","","","","new",0,""],["Stone & Wood Brewery","","","","","","FMCG","new",0,""],["Streets Icecream","","","","","","FMCG","new",0,""],["Stuff","Hunter","Johnson","CEO","hunter@themancave.life","","","new",0,""],["SumaNurica","Danielle","Joubert","","danielle@sumanurica.com","","","new",0,""],["Sunrice","Michelle","Wilson","ESG | Sustainability","mwilson@sunrice.com.au","Kylie Porter","Food&Bev","proposal",0,""],["SunRice Group","Michelle","Wilson","","mwilson@sunrice.com.au","","","new",0,""],["Suntory","Tim","Lee","Head of Packaging","","Andrew Gedes","FMCG","contacted",0,""],["Swisse","Elise","Giles","Corporate & Government Affairs","elise giles <elise.giles@hh.global>","Fiona Middleton","Healthcare","proposal",0,""],["Swisse Wellness (part of H&H Group)","Fiona","Middleton","","fiona.middleton@hh.global","","","new",0,""],["Target","Meredith","Taylor","Head of Marketing","meredith.taylor@target.com.au","","Apparal","new",0,""],["Taronga Conservation Society (zoo)","Belinda","Fairbrother","","bfairbrother@zoo.nsw.gov.au","","","new",0,""],["Tassal Group","David","Maronese","","david.maronese@tassal.com.au","","","new",0,""],["Temple & Webster","Aidan","Brohier","","aidan.brohier@templeandwebster.com.au","","","new",0,""],["Tennis Australia","Matthew","Nicholas","","mnicholas@tennis.com.au","","","new",0,""],["TFI","Frances","Carter","Sustainability Manager","frances.carter@thomasfoods.com","Dean Woosnam","Meat","proposal",1,""],["Thankyou Group","Daniel","Flynn","","daniel.f@thankyou.co","","","new",0,""],["Thankyou Group","Peter","Y","","peter.y@thankyou.co","","","new",0,""],["Thankyou Group (Assessments)","Pete","Yao","Chief Impact Officer","","","","new",0,""],["Thankyou Group (Gamechanger)","Daniel","Flynn","Co-Founder & Managing Director","","","","new",0,""],["The a2 Milk Company","Fiona","Baxter","","fiona.baxter@a2milk.com","","","new",0,""],["The Coca Cola Co.","Livia","Desalvo","Head of Frontline Mktg","","","FMCG","lost",0,""],["The Reject Shop","Barbara","Kerlen","CESA (Board of Directors)","bkerlen@rejectshop.com.au","","","new",0,""],["tms","Angela","Yi","","angela.yi@tmsw.com","","","new",0,""],["Total Tools","Andrew","Illichmann","Executive GM Merchandise","a.illichmann@totaltools.com.au","","Retail","responded",0,""],["TTI","Fiona","Kelly","Sustainability Manager","fiona.kelly@ttibrands.com.au","Eve Moody","Tools","proposal",1,""],["Uber Eats","Fay","AlQassar","","fay@uber.com","","","new",0,""],["Uber Eats","Fay","","Global Head of Sustainability","","","","new",0,""],["UCC Coffee","Jess","Kershaw","Head of Sales","","Peter Stathos","Food Service","responded",1,""],["Unilever","David","Jones","","david.jones@unilever.com","","","new",0,""],["Unilever","Brooke","Sprott","Head of Sustainability","brooke.sprott@unilever.com","David Jones","FMCG","proposal",0,""],["Unilever ANZ","Sambha","Murthy","","nps.murthy@unilever.com","","","new",0,""],["Unilever Aus","Sambha","Murthy","","nps.murthy@unilever.com","","","new",0,""],["Unilever Global","Nicky","Sparshott","","nicole.sparshott@unilever.com","","","new",0,""],["Unilever Global","Nicole","Sparshott","Chief Transformation Officer","","","","new",0,""],["Vanessa Megan","Derek","","","derek@vanessamegan.com","","","new",0,""],["Varden","Stuart","Gordon","","stuart@varden.com.au","","","new",0,""],["Virgin Australia","Fiona","Walmsley","Sustainability Manager","fiona.walmsley@virginaustralia.com","","Travel","proposal",0,""],["W23","Natalie","Naumovski","","nnaumovski@woolworths.com.au","","","new",0,""],["Wanderlust","Radek","Sali","","radek.sali@lightwarrior.com","","","new",0,""],["Wanderlust","Radek","Sali","Owner","","","","new",0,""],["Waverley Farms","Olivia","Brown","Partner, Morris Brown Communications","","","","new",0,""],["Waverly Farm","Olivia","Brown","","olivia@morris-brown.com.au","","","new",0,""],["Wellman Group Packaging","","","Prodn Mgr","","","Packaging","new",0,""],["Wesfarmers Health","Viet","Nguyen","","viet.nguyen@api.net.au","","","new",0,""],["Wesfarmers Health","","","","","","","new",0,""],["Winc Australia Pty Ltd","Peter","Kelly","","peter.kelly@winc.com.au","","","new",0,""],["Woolworths","Jasmine","Medwell","Head of Planet - Sustainability","jmedwell@woolworths.com.au","","","new",0,""],["Woolworths","Simon","Lowden","Head sustainability","","","Retail","new",0,""],["Woolworths","","","Head of Planet","","","","new",0,""],["Yarra City Council","Erin","","","","","","new",0,""],["Yo-Chi","Oliver","Allis","","oliver@yochi.com.au","","","new",0,""],["Yo-Chi","Oliver","Allis","Owner + Brand Leader","","","","new",0,""],["York St Brands","Lauren A","Cain","","lauren@yorkstbrands.com","","","new",0,""],["Zerella","Mark","Pye","Managing Director","","","","new",0,""],["Zinc","Miranda","Hill","Global Director - Entertainment","","","","new",0,""],["Zipform Packaging","","","","","","","new",0,""],["Zoos Victoria","Kiam","Yoong","Sustainability Manager","","","","new",0,""]];
+
+function seedLeads() {
+  return SEED_ROWS.map(([org, first, last, title, email, other, sector, stage, pd, note]) => ({
+    id: leadId(org, email, first, last),
+    org, first, last, title, email, other, sector, stage,
+    pd: !!pd, owner: "Unassigned", lastTouch: null, snoozedUntil: null,
+    notes: note || "", createdAt: nowIso(), log: [],
+  })).filter((l, i, arr) => arr.findIndex((x) => x.id === l.id) === i);
+}
+
+/* ---------- storage ---------- */
+const KEY = "phantm-crm-v2";
+async function loadStored() {
+  for (const k of [KEY, "phantm-crm-v1"]) {
+    try {
+      const r = await window.storage.get(k);
+      if (r && r.value) return { key: k, data: JSON.parse(r.value) };
+    } catch (e) { /* missing */ }
+  }
+  return null;
+}
+let saveTimer = null;
+function saveState(state) {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async () => {
+    try { await window.storage.set(KEY, JSON.stringify(state)); } catch (e) { console.error("save failed", e); }
+  }, 400);
+}
+
+function mergeLeads(existing, incoming, { advanceOnly = true } = {}) {
+  const map = new Map(existing.map((l) => [l.id, l]));
+  let added = 0, moved = 0;
+  for (const inc of incoming) {
+    const prev = map.get(inc.id);
+    if (prev) {
+      const patch = { ...prev };
+      for (const k of ["first", "last", "title", "email", "other", "sector"]) if (!patch[k] && inc[k]) patch[k] = inc[k];
+      if (inc.pd) patch.pd = true;
+      if (inc.sheetTouch && (!patch.lastTouch || inc.sheetTouch > patch.lastTouch)) patch.lastTouch = inc.sheetTouch;
+      if (inc.sheetNote && !(patch.notes || "").includes(inc.sheetNote)) patch.notes = (patch.notes ? patch.notes + "\n" : "") + inc.sheetNote;
+      if (STAGE_IDX[inc.stage] > STAGE_IDX[patch.stage] || (!advanceOnly && inc.stage !== patch.stage)) { patch.stage = inc.stage; moved++; }
+      map.set(inc.id, patch);
+    } else {
+      map.set(inc.id, {
+        ...inc, pd: !!inc.pd, owner: "Unassigned",
+        lastTouch: inc.sheetTouch || null, snoozedUntil: null,
+        notes: inc.sheetNote || "", createdAt: nowIso(), log: [{ ts: nowIso(), note: "Imported from master list" }],
+      });
+      added++;
+    }
+  }
+  return { leads: [...map.values()], added, moved };
+}
+
+/* ---------- UI atoms ---------- */
+const font = { body: "'Inter', -apple-system, 'Segoe UI', sans-serif", display: "'Archivo Narrow', 'Arial Narrow', sans-serif" };
+
+const Eyebrow = ({ children, style }) => (
+  <div style={{ fontFamily: font.display, textTransform: "uppercase", letterSpacing: "0.14em", fontSize: 11, fontWeight: 600, color: C.ink40, ...style }}>{children}</div>
+);
+
+const StageChip = ({ stage }) => {
+  const i = STAGE_IDX[stage];
+  const warm = i >= STAGE_IDX.responded && i < STAGE_IDX.won;
+  const bg = stage === "won" ? C.emerald : stage === "lost" ? "rgba(0,26,19,0.12)" : warm ? "rgba(28,186,136,0.16)" : C.faint;
+  const col = stage === "won" ? "#fff" : stage === "lost" ? C.ink60 : warm ? C.deepEmerald : C.ink60;
+  return <span style={{ display: "inline-flex", background: bg, color: col, borderRadius: 999, padding: "3px 10px", fontSize: 11.5, fontWeight: 600, fontFamily: font.display, textTransform: "uppercase", letterSpacing: "0.06em", whiteSpace: "nowrap" }}>{STAGES[i].label}</span>;
+};
+
+const StageDots = ({ stage }) => {
+  const active = stage === "lost" ? -1 : STAGE_IDX[stage];
+  return (
+    <div style={{ display: "flex", gap: 4 }}>
+      {STAGES.slice(0, 7).map((s, j) => (
+        <div key={s.key} title={s.label} style={{ width: 7, height: 7, borderRadius: 99, background: j <= active ? (j >= STAGE_IDX.responded ? C.emerald : C.pine) : "rgba(0,26,19,0.12)" }} />
+      ))}
+    </div>
+  );
+};
+
+const Btn = ({ children, kind = "ghost", small, big, onClick, style, title }) => {
+  const base = {
+    fontFamily: font.body, fontWeight: 600, borderRadius: big ? 10 : 8, cursor: "pointer",
+    fontSize: big ? 15.5 : small ? 12.5 : 13.5, padding: big ? "13px 26px" : small ? "6px 11px" : "9px 16px",
+    border: "1px solid transparent", transition: "opacity .15s", whiteSpace: "nowrap",
+  };
+  const kinds = {
+    primary: { background: C.emerald, color: "#fff" },
+    dark: { background: C.forest, color: C.salt },
+    ghost: { background: "transparent", color: C.pine, border: `1px solid ${C.line}` },
+    quiet: { background: "transparent", color: C.ink60, border: "none" },
+  };
+  return <button title={title} onClick={onClick} style={{ ...base, ...kinds[kind], ...style }} onMouseEnter={(e) => (e.currentTarget.style.opacity = 0.82)} onMouseLeave={(e) => (e.currentTarget.style.opacity = 1)}>{children}</button>;
+};
+
+const Menu = ({ label, items }) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    const h = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, []);
+  return (
+    <div ref={ref} style={{ position: "relative", display: "inline-block" }}>
+      <Btn onClick={() => setOpen(!open)}>{label} ▾</Btn>
+      {open && (
+        <div style={{ position: "absolute", top: "calc(100% + 6px)", left: 0, background: "#fff", border: `1px solid ${C.line}`, borderRadius: 10, boxShadow: "0 12px 32px rgba(0,26,19,0.18)", zIndex: 45, minWidth: 190, overflow: "hidden" }}>
+          {items.map((it, i) => (
+            <button key={i} onClick={() => { setOpen(false); it.onClick(); }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(28,186,136,0.08)")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
+              style={{ display: "block", width: "100%", textAlign: "left", padding: "10px 14px", background: "none", border: "none", cursor: "pointer", fontSize: 13.5, fontFamily: font.body, color: it.color || C.forest, fontWeight: it.bold ? 700 : 500, borderTop: i ? `1px solid ${C.faint}` : "none" }}>
+              {it.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ============================================================ */
+function PhantmCRM() {
+  const [leads, setLeads] = useState(null);
+  const [cleared, setCleared] = useState({ date: today(), count: 0 });
+  const [view, setView] = useState("today");
+  const [ownerFilter, setOwnerFilter] = useState("All");
+  const [search, setSearch] = useState("");
+  const [openId, setOpenId] = useState(null);
+  const [draft, setDraft] = useState(null);
+  const [showImport, setShowImport] = useState(false);
+  const [showAdd, setShowAdd] = useState(false);
+  const [pipeStage, setPipeStage] = useState("contacted");
+  const [stageFilter, setStageFilter] = useState("all");
+  const [aiFor, setAiFor] = useState(null);
+  const [toast, setToast] = useState(null);
+  const [showCold, setShowCold] = useState(false);
+  const [showAll, setShowAll] = useState(false);
+  const [skip, setSkip] = useState(0);
+  const fileRef = useRef(null);
+
+  useEffect(() => {
+    (async () => {
+      const stored = await loadStored();
+      const seed = seedLeads();
+      if (!stored) { setLeads(seed); return; }
+      const data = stored.data;
+      const prevLeads = data.leads || [];
+      // fold the fresh master-sheet seed into whatever was saved (keeps notes/owners/history)
+      const seedAsIncoming = seed.map((s) => ({ ...s, sheetTouch: null, sheetNote: s.notes }));
+      const { leads: merged } = mergeLeads(prevLeads, seedAsIncoming);
+      setLeads(merged);
+      if (data.cleared && data.cleared.date === today()) setCleared(data.cleared);
+    })();
+  }, []);
+
+  useEffect(() => { if (leads) saveState({ leads, cleared }); }, [leads, cleared]);
+
+  const ping = (msg) => { setToast(msg); setTimeout(() => setToast(null), 2600); };
+  const bumpCleared = () => setCleared((c) => (c.date === today() ? { ...c, count: c.count + 1 } : { date: today(), count: 1 }));
+
+  const update = useCallback((id, patch) => {
+    setLeads((ls) => ls.map((l) => (l.id === id ? { ...l, ...(typeof patch === "function" ? patch(l) : patch) } : l)));
+  }, []);
+
+  const logAction = (id, note, opts = {}) => {
+    update(id, (l) => ({ lastTouch: today(), snoozedUntil: null, log: [{ ts: nowIso(), note }, ...(l.log || [])], ...opts }));
+  };
+
+  const noResponse = (lead) => {
+    const n = (lead.noReply || 0) + 1;
+    update(lead.id, (l) => ({ lastTouch: today(), noReply: n, log: [{ ts: nowIso(), note: `No response (${n}${n === 1 ? "st" : n === 2 ? "nd" : n === 3 ? "rd" : "th"} time)` }, ...(l.log || [])] }));
+    bumpCleared();
+    ping(n >= 3 ? "That's " + n + " tries with no reply. Try another contact, or ask AI for a fresh angle." : "Logged. It'll come back around in a few days.");
+  };
+
+  const repliedItems = (lead) => {
+    const items = [];
+    const ni = STAGE_IDX[lead.stage] + 1;
+    if (ni < STAGE_IDX.won) items.push({ label: `Move to ${STAGES[ni].label}`, bold: true, onClick: () => { setStage(lead.id, STAGES[ni].key); bumpCleared(); } });
+    items.push({ label: "No response", onClick: () => noResponse(lead) });
+    items.push({ label: "Won 🎉", color: C.deepEmerald, bold: true, onClick: () => { setStage(lead.id, "won"); bumpCleared(); } });
+    items.push({ label: "Lost", color: C.red, onClick: () => { setStage(lead.id, "lost"); bumpCleared(); } });
+    return items;
+  };
+
+  const snoozeItems = (lead) => [
+    { label: "1 day", onClick: () => snooze(lead.id, 1) },
+    { label: "3 days", onClick: () => snooze(lead.id, 3) },
+    { label: "1 week", onClick: () => snooze(lead.id, 7) },
+    { label: "1 month", onClick: () => snooze(lead.id, 30) },
+  ];
+
+  const setStage = (id, stage) => {
+    logAction(id, `Stage moved to ${STAGES[STAGE_IDX[stage]].label}`, { stage });
+    ping(stage === "won" ? "🎉 Won. Brilliant." : `Moved to ${STAGES[STAGE_IDX[stage]].label}`);
+  };
+
+  const snooze = (id, days) => {
+    const d = new Date(); d.setDate(d.getDate() + days);
+    update(id, { snoozedUntil: d.toISOString().slice(0, 10) });
+    ping(`Snoozed ${days} day${days > 1 ? "s" : ""}. It'll come back.`);
+  };
+
+  /* ----- import / export ----- */
+  const handleFile = async (file) => {
+    try {
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(buf);
+      const incoming = parseWorkbook(wb, true);
+      if (!incoming.length) { ping("No leads found. Check the file has an Organisation column."); return; }
+      let summary = "";
+      setLeads((existing) => {
+        const { leads: merged, added, moved } = mergeLeads(existing, incoming);
+        summary = `Synced: ${added} new leads, ${moved} stage updates. Notes and history kept.`;
+        return merged;
+      });
+      setTimeout(() => ping(summary), 50);
+      setShowImport(false);
+    } catch (e) { ping("Couldn't read that file. Export the sheet as .xlsx and try again."); }
+  };
+
+  const exportCsv = () => {
+    const header = ["Organisation", "First name", "Surname", "Job Title", "Email Address", "Other Contacts", "Sector", "Contacted", "Responded", "Initial Mtg", "In Pipedrive", "Demo'd", "Priced Prop", "Won", "Lost", "Owner", "Last touch", "Notes"];
+    const lines = [header];
+    for (const l of leads) {
+      const flag = (k) => (l.stage === "lost" ? (k === "lost" ? "TRUE" : (STAGE_IDX[l.stage] > STAGE_IDX[k] ? "TRUE" : "FALSE")) : STAGE_IDX[l.stage] >= STAGE_IDX[k] ? "TRUE" : "FALSE");
+      lines.push([l.org, l.first, l.last, l.title, l.email, l.other, l.sector,
+        flag("contacted"), flag("responded"), flag("meeting"), l.pd ? "TRUE" : "FALSE", flag("demoed"), flag("proposal"), l.stage === "won" ? "TRUE" : "FALSE", l.stage === "lost" ? "TRUE" : "FALSE",
+        l.owner, l.lastTouch || "", (l.notes || "").replace(/\n/g, " ")]);
+    }
+    const csv = lines.map((r) => r.map((c) => `"${String(c ?? "").replace(/"/g, '""')}"`).join(",")).join("\n");
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+    const a = document.createElement("a");
+    a.href = url; a.download = `phantm-master-leads-${today()}.csv`; a.click();
+    URL.revokeObjectURL(url);
+    ping("Exported. Import it into the Google Sheet to sync back.");
+  };
+
+  /* ----- derived ----- */
+  const filtered = useMemo(() => {
+    if (!leads) return [];
+    return leads.filter((l) => (ownerFilter === "All" || l.owner === ownerFilter) &&
+      (!search || (l.org + " " + l.first + " " + l.last + " " + l.email + " " + l.sector).toLowerCase().includes(search.toLowerCase())));
+  }, [leads, ownerFilter, search]);
+
+  const actions = useMemo(() => {
+    const out = [];
+    for (const l of filtered) { const a = nextActionFor(l); if (a) out.push({ lead: l, action: a }); }
+    out.sort((a, b) => b.action.prio - a.action.prio || b.action.days - a.action.days || a.lead.org.localeCompare(b.lead.org));
+    return out;
+  }, [filtered]);
+
+  const warmActions = actions.filter((a) => !a.action.cold);
+  const coldActions = actions.filter((a) => a.action.cold);
+  const rotated = warmActions.length ? warmActions.slice(skip % warmActions.length).concat(warmActions.slice(0, skip % warmActions.length)) : [];
+  const focus = rotated[0];
+  const upNext = rotated.slice(1, 4);
+
+  const stats = useMemo(() => {
+    if (!leads) return {};
+    const open = leads.filter((l) => l.stage !== "won" && l.stage !== "lost");
+    const warm = open.filter((l) => STAGE_IDX[l.stage] >= STAGE_IDX.responded);
+    return { open: open.length, warm: warm.length, won: leads.filter((l) => l.stage === "won").length };
+  }, [leads]);
+
+  const openDraft = (lead, templateKey) => {
+    const t = TEMPLATES[templateKey](lead);
+    setDraft({ lead, templateKey, subject: t.subject, body: t.body });
+  };
+
+  if (!leads) return <div style={{ minHeight: "100vh", background: C.salt, display: "grid", placeItems: "center", fontFamily: font.body, color: C.pine }}>Loading your pipeline…</div>;
+
+  const openLead = leads.find((l) => l.id === openId);
+
+  return (
+    <div style={{ minHeight: "100vh", background: C.salt, fontFamily: font.body, color: C.forest }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Archivo+Narrow:wght@500;600;700&display=swap');
+        * { box-sizing: border-box; }
+        input, select, textarea { font-family: 'Inter', sans-serif; }
+        input:focus, select:focus, textarea:focus, button:focus-visible { outline: 2px solid ${C.emerald}; outline-offset: 1px; }
+        @keyframes pop { 0% { transform: scale(.97); opacity:.5 } 100% { transform: scale(1); opacity:1 } }
+        @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+      `}</style>
+
+      {/* ===== header ===== */}
+      <header style={{ background: C.forest, color: C.salt, padding: "0 18px" }}>
+        <div style={{ maxWidth: 1040, margin: "0 auto", display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap", padding: "14px 0 0" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginRight: "auto" }}>
+            <img src={LOGO} alt="Phantm" style={{ height: 48, display: "block" }} />
+            <span style={{ fontFamily: font.display, fontSize: 13, color: C.emerald, textTransform: "uppercase", letterSpacing: "0.18em" }}>Lead engine</span>
+          </div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <Btn kind="primary" small onClick={() => setShowAdd(true)}>+ Add lead</Btn>
+            <Btn small onClick={() => setShowImport(true)} style={{ color: C.salt, borderColor: "rgba(255,248,239,0.25)" }}>Sync sheet</Btn>
+            <Btn small onClick={exportCsv} style={{ color: C.salt, borderColor: "rgba(255,248,239,0.25)" }}>Export CSV</Btn>
+          </div>
+        </div>
+        <div style={{ maxWidth: 1040, margin: "0 auto", display: "flex", gap: 2, paddingTop: 12 }}>
+          {[["today", `Today${warmActions.length ? ` · ${warmActions.length}` : ""}`], ["pipeline", "Pipeline"], ["insights", "Insights"], ["leads", "All leads"]].map(([k, label]) => (
+            <button key={k} onClick={() => setView(k)} style={{
+              fontFamily: font.display, textTransform: "uppercase", letterSpacing: "0.1em", fontSize: 12.5, fontWeight: 600,
+              padding: "10px 16px", background: view === k ? C.salt : "transparent", color: view === k ? C.forest : "rgba(255,248,239,0.7)",
+              border: "none", borderRadius: "8px 8px 0 0", cursor: "pointer",
+            }}>{label}</button>
+          ))}
+        </div>
+      </header>
+
+      <div style={{ maxWidth: 1040, margin: "0 auto", padding: "18px 18px 90px" }}>
+
+        {/* ===== TODAY: focus mode ===== */}
+        {view === "today" && (
+          <div style={{ maxWidth: 640, margin: "0 auto" }}>
+            {/* progress strip */}
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 18, flexWrap: "wrap" }}>
+              <div style={{ marginRight: "auto", fontSize: 13.5, color: C.ink60 }}>
+                <b style={{ color: C.deepEmerald }}>{cleared.count}</b> cleared today · <b>{warmActions.length}</b> warm waiting
+              </div>
+              <select value={ownerFilter} onChange={(e) => setOwnerFilter(e.target.value)} style={{ padding: "7px 10px", borderRadius: 8, border: `1px solid ${C.line}`, background: "#fff", fontSize: 12.5 }}>
+                <option>All</option>{OWNERS.map((o) => <option key={o}>{o}</option>)}
+              </select>
+            </div>
+
+            {/* THE one thing */}
+            {focus ? (
+              <div key={focus.lead.id + skip} style={{ background: C.card, border: `1px solid ${C.line}`, borderTop: `5px solid ${C.emerald}`, borderRadius: 14, padding: "22px 22px 18px", boxShadow: "0 6px 24px rgba(0,26,19,0.07)", animation: "pop .18s ease-out" }}>
+                <Eyebrow style={{ color: C.deepEmerald, marginBottom: 10 }}>Next up</Eyebrow>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                  <span onClick={() => setOpenId(focus.lead.id)} style={{ fontFamily: font.display, fontWeight: 700, fontSize: 26, cursor: "pointer" }}>{focus.lead.org}</span>
+                  <StageChip stage={focus.lead.stage} />
+                </div>
+                <div style={{ color: C.ink60, fontSize: 13.5, marginTop: 3 }}>
+                  {focus.lead.first} {focus.lead.last}{focus.lead.title ? ` · ${focus.lead.title}` : ""}
+                </div>
+                <p style={{ fontSize: 16, lineHeight: 1.5, margin: "14px 0 18px" }}>
+                  <b style={{ color: C.deepEmerald }}>{focus.action.verb}.</b> {focus.action.why(focus.action.days)}
+                </p>
+                <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+                  {focus.lead.email ? (
+                    <Btn kind="primary" big onClick={() => openDraft(focus.lead, focus.action.template)}>✉ Draft email</Btn>
+                  ) : (
+                    <Btn kind="primary" big onClick={() => setOpenId(focus.lead.id)}>Add an email address</Btn>
+                  )}
+                  <Menu label="They replied" items={repliedItems(focus.lead)} />
+                  <Menu label="Snooze" items={snoozeItems(focus.lead)} />
+                  <Btn small kind="quiet" onClick={() => setSkip((s) => s + 1)}>Skip for now →</Btn>
+                </div>
+                {(focus.lead.noReply || 0) >= 3 && (
+                  <div style={{ marginTop: 10, fontSize: 12.5, color: C.red }}>Gone quiet {focus.lead.noReply} times — worth a new angle or another contact. Open the lead and try ✨ AI suggest.</div>
+                )}
+              </div>
+            ) : (
+              <div style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: 14, padding: "40px 24px", textAlign: "center" }}>
+                <div style={{ fontSize: 34 }}>🌿</div>
+                <div style={{ fontFamily: font.display, fontSize: 22, fontWeight: 700, marginTop: 8 }}>
+                  {cleared.count > 0 ? `Queue clear. ${cleared.count} action${cleared.count > 1 ? "s" : ""} handled today.` : "Nothing warm is waiting on you."}
+                </div>
+                <div style={{ color: C.ink60, fontSize: 14, marginTop: 6 }}>Sync the sheet to pull in new activity, or dip into the cold list below.</div>
+              </div>
+            )}
+
+            {/* up next: glanceable, no buttons */}
+            {upNext.length > 0 && (
+              <div style={{ marginTop: 22 }}>
+                <Eyebrow style={{ marginBottom: 8 }}>After that</Eyebrow>
+                <div style={{ display: "grid", gap: 6 }}>
+                  {upNext.map(({ lead, action }) => (
+                    <div key={lead.id} onClick={() => setOpenId(lead.id)} style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: 10, padding: "10px 14px", display: "flex", alignItems: "center", gap: 10, cursor: "pointer", flexWrap: "wrap" }}>
+                      <span style={{ fontWeight: 600, marginRight: "auto" }}>{lead.org}</span>
+                      <span style={{ color: C.ink60, fontSize: 12.5 }}>{action.verb}</span>
+                      <StageChip stage={lead.stage} />
+                    </div>
+                  ))}
+                </div>
+                {warmActions.length > 4 && (
+                  <button onClick={() => setShowAll(!showAll)} style={{ background: "none", border: "none", cursor: "pointer", padding: "10px 0 0", color: C.deepEmerald, fontSize: 13, fontWeight: 600 }}>
+                    {showAll ? "Hide the rest ▲" : `Show all ${warmActions.length} warm actions ▼`}
+                  </button>
+                )}
+                {showAll && (
+                  <div style={{ display: "grid", gap: 6, marginTop: 8 }}>
+                    {rotated.slice(4).map(({ lead, action }) => (
+                      <div key={lead.id} onClick={() => setOpenId(lead.id)} style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: 10, padding: "9px 14px", display: "flex", alignItems: "center", gap: 10, cursor: "pointer", flexWrap: "wrap" }}>
+                        <span style={{ fontWeight: 600, marginRight: "auto", fontSize: 13.5 }}>{lead.org}</span>
+                        <span style={{ color: C.ink60, fontSize: 12 }}>{action.verb}</span>
+                        <StageChip stage={lead.stage} />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* cold queue: tucked away */}
+            <div style={{ marginTop: 28 }}>
+              <button onClick={() => setShowCold(!showCold)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center", gap: 8 }}>
+                <Eyebrow>Cold outreach ({coldActions.length})</Eyebrow>
+                <span style={{ color: C.ink40, fontSize: 12 }}>{showCold ? "▲" : "▼"}</span>
+              </button>
+              {showCold && (
+                <div style={{ display: "grid", gap: 6, marginTop: 10 }}>
+                  {coldActions.slice(0, 20).map(({ lead }) => (
+                    <div key={lead.id} style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: 10, padding: "9px 14px", display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                      <div style={{ marginRight: "auto", minWidth: 0 }}>
+                        <span style={{ fontWeight: 600, fontSize: 13.5 }}>{lead.org}</span>
+                        <span style={{ color: C.ink60, fontSize: 12.5 }}> · {lead.first} {lead.last}{lead.sector ? ` · ${lead.sector}` : ""}</span>
+                      </div>
+                      <Btn small onClick={() => openDraft(lead, "cold")}>Draft intro</Btn>
+                      <Btn small kind="quiet" onClick={() => snooze(lead.id, 14)}>Park 2 wks</Btn>
+                    </div>
+                  ))}
+                  {coldActions.length > 20 && <div style={{ color: C.ink40, fontSize: 12.5 }}>+ {coldActions.length - 20} more in All leads</div>}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ===== PIPELINE: flick between stages ===== */}
+        {view === "pipeline" && (
+          <div>
+            <DealFlowDiagram leads={filtered} pipeStage={pipeStage} setPipeStage={setPipeStage} />
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 16 }}>
+              {STAGES.filter((s) => s.key !== "new").map((s) => {
+                const n = filtered.filter((l) => l.stage === s.key).length;
+                const active = pipeStage === s.key;
+                return (
+                  <button key={s.key} onClick={() => setPipeStage(s.key)} style={{
+                    fontFamily: font.display, textTransform: "uppercase", letterSpacing: "0.08em", fontSize: 12.5, fontWeight: 700,
+                    padding: "9px 14px", borderRadius: 999, cursor: "pointer",
+                    background: active ? (s.key === "won" ? C.emerald : C.forest) : C.card,
+                    color: active ? C.salt : C.pine,
+                    border: `1px solid ${active ? "transparent" : C.line}`,
+                  }}>
+                    {s.label} <span style={{ opacity: 0.65, fontWeight: 500 }}>{n}</span>
+                  </button>
+                );
+              })}
+            </div>
+            {(() => {
+              const inStage = filtered.filter((l) => l.stage === pipeStage);
+              if (!inStage.length) return (
+                <div style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: 12, padding: 28, textAlign: "center", color: C.ink60 }}>
+                  No leads sitting in {STAGES[STAGE_IDX[pipeStage]].label} right now.
+                </div>
+              );
+              return (
+                <div style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: 12, overflow: "hidden" }}>
+                  {inStage.slice().sort((a, b) => a.org.localeCompare(b.org)).map((l) => {
+                    const a = nextActionFor(l);
+                    return (
+                      <div key={l.id} onClick={() => setOpenId(l.id)} style={{ padding: "11px 16px", borderBottom: `1px solid ${C.faint}`, display: "flex", alignItems: "center", gap: 12, cursor: "pointer", flexWrap: "wrap" }}>
+                        <div style={{ marginRight: "auto", minWidth: 0 }}>
+                          <div style={{ fontWeight: 600, fontSize: 14 }}>{l.org}{l.pd && <span title="In Pipedrive" style={{ color: C.ink40, fontWeight: 400, fontSize: 11.5 }}> · PD</span>}</div>
+                          <div style={{ color: C.ink60, fontSize: 12.5 }}>{l.first} {l.last}{l.title ? ` · ${l.title}` : ""}{l.owner !== "Unassigned" ? ` · ${l.owner}` : ""}</div>
+                        </div>
+                        {a && !a.cold && <span style={{ color: C.red, fontSize: 12, fontWeight: 600 }}>● {a.verb}</span>}
+                        <span style={{ color: C.ink40, fontSize: 12 }}>{l.lastTouch ? `${daysSince(l.lastTouch)}d ago` : "no touch logged"}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
+          </div>
+        )}
+
+        {/* ===== INSIGHTS ===== */}
+        {view === "insights" && <Insights leads={filtered} />}
+
+        {/* ===== ALL LEADS ===== */}
+        {view === "leads" && (
+          <div>
+            <div style={{ display: "flex", gap: 10, marginBottom: 12, flexWrap: "wrap" }}>
+              <input placeholder="Search leads…" value={search} onChange={(e) => setSearch(e.target.value)} style={{ padding: "9px 12px", borderRadius: 8, border: `1px solid ${C.line}`, background: "#fff", fontSize: 13.5, flex: "1 1 200px" }} />
+              <select value={stageFilter} onChange={(e) => setStageFilter(e.target.value)} style={{ padding: "8px 10px", borderRadius: 8, border: `1px solid ${stageFilter !== "all" ? C.emerald : C.line}`, background: "#fff", fontSize: 13, fontWeight: stageFilter !== "all" ? 600 : 400 }}>
+                <option value="all">All stages</option>
+                {STAGES.map((s) => <option key={s.key} value={s.key}>{s.key === "new" ? "New (untouched)" : s.label}</option>)}
+              </select>
+              <select value={ownerFilter} onChange={(e) => setOwnerFilter(e.target.value)} style={{ padding: "8px 10px", borderRadius: 8, border: `1px solid ${C.line}`, background: "#fff", fontSize: 13 }}>
+                <option>All</option>{OWNERS.map((o) => <option key={o}>{o}</option>)}
+              </select>
+            </div>
+            {stageFilter !== "all" && (
+              <div style={{ marginBottom: 14 }}>
+                <div style={{ fontSize: 20, fontWeight: 700, lineHeight: 1.1, color: stageFilter === "won" ? C.deepEmerald : stageFilter === "lost" ? C.ink40 : C.forest }}>
+                  {filtered.filter((l) => l.stage === stageFilter).length}
+                </div>
+                <Eyebrow>{stageFilter === "new" ? "New" : STAGES[STAGE_IDX[stageFilter]].label}</Eyebrow>
+              </div>
+            )}
+            <div style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: 12, overflow: "hidden" }}>
+              {filtered.filter((l) => stageFilter === "all" || l.stage === stageFilter).slice().sort((a, b) => STAGE_IDX[b.stage] - STAGE_IDX[a.stage] || a.org.localeCompare(b.org)).map((l) => (
+                <div key={l.id} onClick={() => setOpenId(l.id)} style={{ padding: "11px 16px", borderBottom: `1px solid ${C.faint}`, display: "flex", alignItems: "center", gap: 12, cursor: "pointer", flexWrap: "wrap" }}>
+                  <div style={{ flex: "1 1 200px", minWidth: 0 }}>
+                    <div style={{ fontWeight: 600, fontSize: 14 }}>{l.org}</div>
+                    <div style={{ color: C.ink60, fontSize: 12.5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{[(l.first + " " + l.last).trim(), l.title].filter(Boolean).join(" · ")}</div>
+                  </div>
+                  <div style={{ color: C.ink40, fontSize: 12 }}>{l.sector}</div>
+                  <StageDots stage={l.stage} />
+                  <StageChip stage={l.stage} />
+                </div>
+              ))}
+              {filtered.filter((l) => stageFilter === "all" || l.stage === stageFilter).length === 0 && <div style={{ padding: 24, color: C.ink60 }}>No leads match. Clear the filters or sync from the sheet.</div>}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ===== lead drawer ===== */}
+      {openLead && (
+        <Drawer onClose={() => setOpenId(null)}>
+          <LeadDetail lead={openLead} update={update} setStage={setStage} openDraft={openDraft} snooze={snooze} logAction={logAction} onAi={() => setAiFor(openLead)} />
+        </Drawer>
+      )}
+
+      {/* ===== AI suggestion drawer ===== */}
+      {aiFor && (
+        <Drawer onClose={() => setAiFor(null)}>
+          <AISuggest
+            lead={leads.find((l) => l.id === aiFor.id) || aiFor}
+            onUseEmail={(email) => { setDraft({ lead: aiFor, templateKey: "ai", subject: email.subject, body: email.body }); setAiFor(null); }}
+            onLog={(note) => logAction(aiFor.id, note)}
+          />
+        </Drawer>
+      )}
+
+      {/* ===== draft modal ===== */}
+      {draft && (
+        <Drawer onClose={() => setDraft(null)}>
+          <div>
+            <Eyebrow style={{ marginBottom: 6 }}>Email draft — {draft.lead.org}</Eyebrow>
+            <div style={{ fontSize: 13, color: C.ink60, marginBottom: 14 }}>To: {draft.lead.email || "no email on file"}</div>
+            <label style={{ fontSize: 12, fontWeight: 600, color: C.ink60 }}>Subject</label>
+            <input value={draft.subject} onChange={(e) => setDraft({ ...draft, subject: e.target.value })} style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: `1px solid ${C.line}`, fontSize: 14, margin: "4px 0 12px", background: "#fff" }} />
+            <label style={{ fontSize: 12, fontWeight: 600, color: C.ink60 }}>Message</label>
+            <textarea value={draft.body} onChange={(e) => setDraft({ ...draft, body: e.target.value })} rows={11} style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: `1px solid ${C.line}`, fontSize: 14, lineHeight: 1.5, margin: "4px 0 14px", resize: "vertical", background: "#fff" }} />
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              {draft.lead.email && (
+                <Btn kind="primary" onClick={() => {
+                  window.open(`mailto:${draft.lead.email}?subject=${encodeURIComponent(draft.subject)}&body=${encodeURIComponent(draft.body)}`);
+                  logAction(draft.lead.id, `Email sent: ${draft.subject}`);
+                  bumpCleared(); setDraft(null); ping("✓ Sent and logged. Next one up.");
+                }}>Open in email & log</Btn>
+              )}
+              <Btn onClick={async () => {
+                try { await navigator.clipboard.writeText(`Subject: ${draft.subject}\n\n${draft.body}`); } catch (e) {}
+                logAction(draft.lead.id, `Email sent: ${draft.subject}`);
+                bumpCleared(); setDraft(null); ping("✓ Copied and logged. Next one up.");
+              }}>Copy & log as sent</Btn>
+              <Btn kind="quiet" onClick={() => setDraft(null)}>Cancel</Btn>
+            </div>
+          </div>
+        </Drawer>
+      )}
+
+      {/* ===== import modal ===== */}
+      {showImport && (
+        <Drawer onClose={() => setShowImport(false)}>
+          <div>
+            <Eyebrow style={{ marginBottom: 8 }}>Sync from the master sheet</Eyebrow>
+            <p style={{ fontSize: 14, lineHeight: 1.6, color: C.pine }}>
+              In the Google Sheet go to <b>File → Download → Microsoft Excel (.xlsx)</b>, then drop the file here.
+              The <b>Customer Master Lead List</b> tab is read, tick boxes set stages, duplicates merge, and if a <b>Last touch</b> column exists (the Gmail script adds one) it powers the reminders.
+              Re-syncing is always safe: notes, owners and history are kept, and stages only move forward.
+            </p>
+            <div
+              onClick={() => fileRef.current?.click()}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => { e.preventDefault(); if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); }}
+              style={{ border: `2px dashed ${C.emerald}`, borderRadius: 12, padding: "38px 20px", textAlign: "center", cursor: "pointer", background: "rgba(28,186,136,0.05)", marginTop: 12 }}
+            >
+              <div style={{ fontWeight: 600, color: C.deepEmerald }}>Drop the .xlsx here</div>
+              <div style={{ fontSize: 12.5, color: C.ink60, marginTop: 4 }}>or click to choose a file</div>
+            </div>
+            <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" style={{ display: "none" }} onChange={(e) => e.target.files[0] && handleFile(e.target.files[0])} />
+          </div>
+        </Drawer>
+      )}
+
+      {/* ===== add lead ===== */}
+      {showAdd && (
+        <Drawer onClose={() => setShowAdd(false)}>
+          <AddLead
+            onCancel={() => setShowAdd(false)}
+            onSave={(form) => {
+              const id = leadId(form.org, form.email, form.first, form.last);
+              const exists = leads.find((l) => l.id === id);
+              if (exists) { setShowAdd(false); setOpenId(id); ping(`${form.org} is already in the engine — opened it for you.`); return; }
+              setLeads((ls) => [{
+                id, ...form, other: "", pd: false, snoozedUntil: null,
+                lastTouch: form.stage === "new" ? null : today(),
+                createdAt: nowIso(), log: [{ ts: nowIso(), note: "Added manually" }],
+              }, ...ls]);
+              setShowAdd(false);
+              ping(`${form.org} added${form.stage !== "new" ? " to " + STAGES[STAGE_IDX[form.stage]].label : ""}.`);
+            }}
+          />
+        </Drawer>
+      )}
+
+      {toast && (
+        <div style={{ position: "fixed", bottom: 20, left: "50%", transform: "translateX(-50%)", background: C.forest, color: C.salt, padding: "11px 20px", borderRadius: 10, fontSize: 13.5, boxShadow: "0 8px 24px rgba(0,26,19,0.25)", zIndex: 60, maxWidth: "90vw" }}>{toast}</div>
+      )}
+    </div>
+  );
+}
+
+/* ---------- drawer ---------- */
+function Drawer({ children, onClose }) {
+  return (
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,26,19,0.4)", zIndex: 50, display: "flex", justifyContent: "flex-end" }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ width: "min(520px, 100%)", height: "100%", background: C.salt, padding: "22px 22px 40px", overflowY: "auto", boxShadow: "-12px 0 40px rgba(0,26,19,0.18)" }}>
+        <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: C.ink60, fontSize: 14, padding: 0, marginBottom: 14, fontWeight: 600 }}>← Back</button>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+/* ---------- AI suggestions (Claude API) ---------- */
+function AISuggest({ lead, onUseEmail, onLog }) {
+  const [state, setState] = useState({ loading: true, error: null, result: null });
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const history = (lead.log || []).slice(0, 6).map((e) => `${fmtTs(e.ts || e.date)}: ${e.note}`).join("\n") || "none";
+        const prompt = `You are a B2B sales advisor for Phantm, "the packaging data layer" for regulated supply chains, predominantly Australian businesses. Phantm helps brands, retailers and manufacturers structure packaging data at SKU level (material, mass, movement) for compliance and reporting: APCO, PREP, and state-based packaging regulation.
+
+Lead:
+- Organisation: ${lead.org}
+- Contact: ${lead.first} ${lead.last}${lead.title ? ", " + lead.title : ""}
+- Sector: ${lead.sector || "unknown"}
+- Pipeline stage: ${STAGES[STAGE_IDX[lead.stage]].label}
+- Days since last touch: ${lead.lastTouch ? daysSince(lead.lastTouch) : "never contacted / not logged"}
+- Times they've gone quiet: ${lead.noReply || 0}
+- Notes: ${lead.notes || "none"}
+- Recent history:
+${history}
+
+Give a re-engagement plan to move this deal forward. Consider: a fresh angle (APCO/PREP reporting deadlines, sector-specific compliance pressure), whether to switch channel (LinkedIn, phone) or contact, and timing.
+
+Respond with ONLY valid JSON, no markdown fences, in exactly this shape:
+{"angle": "one sentence: the sharpest hook for this specific lead", "steps": ["2-4 short concrete next steps"], "email": {"subject": "subject line", "body": "email under 110 words, warm concise professional UK/AU English, no em dashes, greeting using first name, sign-off 'Best,' with no name"}}`;
+
+        const res = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: 1000, messages: [{ role: "user", content: prompt }] }),
+        });
+        const data = await res.json();
+        const text = (data.content || []).map((i) => i.text || "").join("");
+        const parsed = JSON.parse(text.replace(/```json|```/g, "").trim());
+        if (alive) setState({ loading: false, error: null, result: parsed });
+      } catch (e) {
+        if (alive) setState({ loading: false, error: "Couldn't reach the AI right now. Try again in a moment.", result: null });
+      }
+    })();
+    return () => { alive = false; };
+  }, [lead.id]);
+
+  return (
+    <div>
+      <Eyebrow style={{ marginBottom: 6, color: C.deepEmerald }}>✨ AI suggestion — {lead.org}</Eyebrow>
+      <div style={{ fontSize: 12.5, color: C.ink60, marginBottom: 16 }}>
+        {STAGES[STAGE_IDX[lead.stage]].label}{lead.lastTouch ? ` · last touch ${daysSince(lead.lastTouch)}d ago` : " · no touch logged"}{(lead.noReply || 0) > 0 ? ` · gone quiet ×${lead.noReply}` : ""}
+      </div>
+
+      {state.loading && (
+        <div style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: 12, padding: 28, textAlign: "center", color: C.ink60, fontSize: 14 }}>
+          Reading the history and thinking…
+        </div>
+      )}
+
+      {state.error && (
+        <div style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: 12, padding: 20, color: C.red, fontSize: 13.5 }}>{state.error}</div>
+      )}
+
+      {state.result && (
+        <div style={{ display: "grid", gap: 14 }}>
+          <div style={{ background: C.card, border: `1px solid ${C.line}`, borderLeft: `4px solid ${C.emerald}`, borderRadius: 12, padding: "14px 16px" }}>
+            <Eyebrow style={{ marginBottom: 6 }}>The angle</Eyebrow>
+            <div style={{ fontSize: 15, lineHeight: 1.5, fontWeight: 500 }}>{state.result.angle}</div>
+          </div>
+
+          <div style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: 12, padding: "14px 16px" }}>
+            <Eyebrow style={{ marginBottom: 8 }}>Suggested plan</Eyebrow>
+            <div style={{ display: "grid", gap: 8 }}>
+              {(state.result.steps || []).map((s, i) => (
+                <div key={i} style={{ display: "flex", gap: 10, fontSize: 13.5, lineHeight: 1.45 }}>
+                  <span style={{ color: C.emerald, fontWeight: 700 }}>→</span><span>{s}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {state.result.email && (
+            <div style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: 12, padding: "14px 16px" }}>
+              <Eyebrow style={{ marginBottom: 8 }}>Suggested email</Eyebrow>
+              <div style={{ fontSize: 13.5, fontStyle: "italic", marginBottom: 8 }}>{state.result.email.subject}</div>
+              <div style={{ fontSize: 13.5, lineHeight: 1.55, whiteSpace: "pre-wrap", color: C.pine }}>{state.result.email.body}</div>
+              <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
+                <Btn kind="primary" small onClick={() => onUseEmail(state.result.email)}>Use this email</Btn>
+                <Btn small kind="quiet" onClick={() => { onLog("AI plan noted: " + state.result.angle); }}>Save angle to history</Btn>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ---------- add lead ---------- */
+function AddLead({ onSave, onCancel }) {
+  const [form, setForm] = useState({ org: "", first: "", last: "", title: "", email: "", sector: "", owner: "Unassigned", notes: "", stage: "new" });
+  const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
+  const input = (label, key, placeholder) => (
+    <div style={{ flex: "1 1 45%" }}>
+      <label style={{ fontSize: 11.5, fontWeight: 600, color: C.ink40, textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: font.display }}>{label}</label>
+      <input value={form[key]} placeholder={placeholder || ""} onChange={set(key)}
+        style={{ width: "100%", padding: "9px 11px", borderRadius: 8, border: `1px solid ${C.line}`, fontSize: 13.5, marginTop: 3, background: "#fff" }} />
+    </div>
+  );
+  return (
+    <div>
+      <Eyebrow style={{ marginBottom: 12 }}>Add a lead</Eyebrow>
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+        <div style={{ flex: "1 1 100%" }}>
+          <label style={{ fontSize: 11.5, fontWeight: 600, color: C.ink40, textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: font.display }}>Organisation *</label>
+          <input value={form.org} onChange={set("org")} placeholder="e.g. MECCA" autoFocus
+            style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: `1px solid ${C.line}`, fontSize: 15, marginTop: 3, background: "#fff", fontWeight: 600 }} />
+        </div>
+        {input("First name", "first")}
+        {input("Surname", "last")}
+        {input("Job title", "title")}
+        {input("Email", "email", "unlocks email drafts")}
+        {input("Sector", "sector", "FMCG, Retail, Apparel…")}
+        <div style={{ flex: "1 1 45%" }}>
+          <label style={{ fontSize: 11.5, fontWeight: 600, color: C.ink40, textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: font.display }}>Owner</label>
+          <select value={form.owner} onChange={set("owner")} style={{ width: "100%", padding: "9px 11px", borderRadius: 8, border: `1px solid ${C.line}`, fontSize: 13.5, marginTop: 3, background: "#fff" }}>
+            {OWNERS.map((o) => <option key={o}>{o}</option>)}
+          </select>
+        </div>
+      </div>
+
+      <Eyebrow style={{ margin: "18px 0 8px" }}>Where are they in the pipeline?</Eyebrow>
+      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+        {STAGES.filter((s) => s.key !== "lost").map((s) => (
+          <Btn key={s.key} small kind={form.stage === s.key ? "dark" : "ghost"} onClick={() => setForm({ ...form, stage: s.key })}>{s.key === "new" ? "Not contacted yet" : s.label}</Btn>
+        ))}
+      </div>
+
+      <Eyebrow style={{ margin: "18px 0 8px" }}>Notes</Eyebrow>
+      <textarea value={form.notes} onChange={set("notes")} rows={3} placeholder="Where did this lead come from? Any context…"
+        style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: `1px solid ${C.line}`, fontSize: 13.5, background: "#fff", resize: "vertical" }} />
+
+      <div style={{ display: "flex", gap: 8, marginTop: 18 }}>
+        <Btn kind="primary" onClick={() => { if (form.org.trim()) onSave({ ...form, org: form.org.trim(), email: form.email.trim().toLowerCase() }); }}
+          style={{ opacity: form.org.trim() ? 1 : 0.45 }}>Save lead</Btn>
+        <Btn kind="quiet" onClick={onCancel}>Cancel</Btn>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- deal flow diagram ---------- */
+function DealFlowDiagram({ leads, pipeStage, setPipeStage }) {
+  const [hover, setHover] = useState(null);
+  const chain = STAGES.filter((s) => !["new", "lost"].includes(s.key));
+  const lostCount = leads.filter((l) => l.stage === "lost").length;
+
+  const N = chain.length;
+  const nodeW = 128, nodeH = 76, gap = 22;
+  const totalW = N * nodeW + (N - 1) * gap;
+  const startX = 0;
+  const y = 8;
+  const midY = y + nodeH / 2;
+  const lostW = 128, lostH = 60;
+  const lostX = totalW / 2 - lostW / 2;
+  const lostY = y + nodeH + 56;
+  const viewW = totalW;
+  const viewH = lostY + lostH + 10;
+
+  const nodeFill = (key, active) => {
+    if (active) return key === "won" ? C.emerald : C.forest;
+    if (key === "won") return "rgba(28,186,136,0.14)";
+    return "#FFFFFF";
+  };
+  const nodeText = (key, active) => (active ? C.salt : key === "won" ? C.deepEmerald : C.forest);
+
+  return (
+    <div style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: 14, padding: "18px 20px 16px", marginBottom: 18 }}>
+      <Eyebrow style={{ marginBottom: 12 }}>Deal flow — click a stage to jump to it</Eyebrow>
+      <div style={{ width: "100%", overflowX: "auto" }}>
+        <svg viewBox={`0 0 ${viewW} ${viewH}`} width="100%" style={{ minWidth: 620, height: "auto", display: "block" }}>
+          <defs>
+            <marker id="flowArr" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 z" fill={C.line} />
+            </marker>
+            <marker id="flowArrLost" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 z" fill="#C0492C" />
+            </marker>
+          </defs>
+
+          {/* connecting arrows between chain nodes */}
+          {chain.slice(0, -1).map((s, i) => {
+            const x1 = startX + i * (nodeW + gap) + nodeW;
+            const x2 = x1 + gap;
+            return <line key={s.key} x1={x1} y1={midY} x2={x2 - 3} y2={midY} stroke={C.line} strokeWidth="2.5" markerEnd="url(#flowArr)" />;
+          })}
+
+          {/* dashed branch down to Lost, from the midpoint of the chain */}
+          <line x1={totalW / 2} y1={y + nodeH} x2={totalW / 2} y2={lostY - 4} stroke="#C0492C" strokeWidth="2" strokeDasharray="5 5" opacity="0.55" markerEnd="url(#flowArrLost)" />
+          <text x={totalW / 2 + 10} y={(y + nodeH + lostY) / 2 + 4} fontFamily={font.body} fontSize="11.5" fill="#C0492C" opacity="0.75">can drop off at any stage</text>
+
+          {/* chain nodes */}
+          {chain.map((s, i) => {
+            const x = startX + i * (nodeW + gap);
+            const active = pipeStage === s.key;
+            const isHover = hover === s.key;
+            const count = leads.filter((l) => l.stage === s.key).length;
+            return (
+              <g key={s.key} onClick={() => setPipeStage(s.key)} onMouseEnter={() => setHover(s.key)} onMouseLeave={() => setHover(null)} style={{ cursor: "pointer" }}>
+                <rect x={x} y={y} width={nodeW} height={nodeH} rx="12"
+                  fill={nodeFill(s.key, active)}
+                  stroke={active ? "transparent" : isHover ? C.emerald : C.line}
+                  strokeWidth={isHover && !active ? 2 : 1.5} />
+                <text x={x + nodeW / 2} y={y + 32} textAnchor="middle" fontFamily={font.display} fontWeight="700" fontSize="24" fill={nodeText(s.key, active)}>{count}</text>
+                <text x={x + nodeW / 2} y={y + 54} textAnchor="middle" fontFamily={font.body} fontWeight="600" fontSize="11.5" letterSpacing="0.04em" fill={active ? C.salt : C.ink60} style={{ textTransform: "uppercase" }}>{s.label}</text>
+              </g>
+            );
+          })}
+
+          {/* lost node */}
+          <g onClick={() => setPipeStage("lost")} onMouseEnter={() => setHover("lost")} onMouseLeave={() => setHover(null)} style={{ cursor: "pointer" }}>
+            <rect x={lostX} y={lostY} width={lostW} height={lostH} rx="12"
+              fill={pipeStage === "lost" ? "#C0492C" : "rgba(192,73,44,0.07)"}
+              stroke={pipeStage === "lost" ? "transparent" : hover === "lost" ? "#C0492C" : C.line}
+              strokeWidth={hover === "lost" && pipeStage !== "lost" ? 2 : 1.5} />
+            <text x={lostX + lostW / 2} y={lostY + 26} textAnchor="middle" fontFamily={font.display} fontWeight="700" fontSize="20" fill={pipeStage === "lost" ? "#fff" : "#C0492C"}>{lostCount}</text>
+            <text x={lostX + lostW / 2} y={lostY + 45} textAnchor="middle" fontFamily={font.body} fontWeight="600" fontSize="11.5" letterSpacing="0.04em" fill={pipeStage === "lost" ? "#fff" : "#C0492C"} style={{ textTransform: "uppercase" }}>Lost</text>
+          </g>
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- insights ---------- */
+function Insights({ leads }) {
+  // CUMULATIVE funnel: how many leads have made it AT LEAST this far.
+  // (A lead sitting at Priced Prop also counts in Contacted and Responded.)
+  const reached = STAGES.filter((s) => !["new"].includes(s.key)).map((s) => ({
+    name: s.label,
+    count: s.key === "lost"
+      ? leads.filter((l) => l.stage === "lost").length
+      : leads.filter((l) => l.stage !== "lost" && STAGE_IDX[l.stage] >= STAGE_IDX[s.key]).length,
+  }));
+
+  // CURRENT: where each deal sits right now — used by the suggestions below
+  const open = leads.filter((l) => !["won", "lost"].includes(l.stage));
+
+  const mixData = [
+    { name: "Untouched", value: leads.filter((l) => l.stage === "new").length, color: "rgba(0,26,19,0.18)" },
+    { name: "In progress", value: leads.filter((l) => l.stage === "contacted").length, color: C.pine },
+    { name: "Warm", value: leads.filter((l) => STAGE_IDX[l.stage] >= STAGE_IDX.responded && !["won", "lost"].includes(l.stage)).length, color: C.emerald },
+    { name: "Won", value: leads.filter((l) => l.stage === "won").length, color: C.deepEmerald },
+    { name: "Lost", value: leads.filter((l) => l.stage === "lost").length, color: "#C0492C" },
+  ].filter((d) => d.value > 0);
+
+  const sectorCounts = {};
+  for (const l of leads) {
+    if (["won", "lost"].includes(l.stage) || STAGE_IDX[l.stage] < STAGE_IDX.responded) continue;
+    const s = l.sector || "Unlabelled";
+    sectorCounts[s] = (sectorCounts[s] || 0) + 1;
+  }
+  const sectorData = Object.entries(sectorCounts).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count).slice(0, 7);
+
+  const contacted = reached.find((r) => r.name === "Contacted")?.count || 0;
+  const responded = reached.find((r) => r.name === "Responded")?.count || 0;
+  const meetings = reached.find((r) => r.name === "Initial Mtg")?.count || 0;
+  const proposals = reached.find((r) => r.name === "Priced Prop")?.count || 0;
+  const won = leads.filter((l) => l.stage === "won").length;
+  const respRate = contacted ? Math.round((responded / contacted) * 100) : 0;
+  const mtgRate = responded ? Math.round((meetings / responded) * 100) : 0;
+  const propToWin = proposals ? Math.round((won / proposals) * 100) : 0;
+
+  const warm = open.filter((l) => STAGE_IDX[l.stage] >= STAGE_IDX.responded);
+
+  /* ----- suggestions: learnings → actions ----- */
+  const suggestions = [];
+  const stuckProps = open.filter((l) => l.stage === "proposal" && daysSince(l.lastTouch) >= 7).length;
+  if (stuckProps) suggestions.push({ n: stuckProps, text: `priced proposals have gone 7+ days without an answer. These are the warmest deals in the book — a chase blitz here is the fastest path to revenue. Work them first in Today.` });
+  if (proposals >= 10 && propToWin < 20) suggestions.push({ n: `${propToWin}%`, text: `proposal-to-win rate. The funnel narrows hardest after pricing goes out. Consider a standard 7-day proposal walkthrough call instead of waiting for email replies.` });
+  if (contacted >= 10 && respRate < 35) suggestions.push({ n: `${respRate}%`, text: `response rate on first outreach. Test a sharper hook — APCO membership deadlines and PREP reporting requirements are landing well as urgency angles. Use AI suggest for per-lead rewrites.` });
+  if (responded >= 5 && mtgRate < 60) suggestions.push({ n: `${mtgRate}%`, text: `of responders get to a meeting. Replies are being won then lost to slow booking — send a calendar link in the first reply, not the third.` });
+  const noEmailWarm = warm.filter((l) => !l.email).length;
+  if (noEmailWarm) suggestions.push({ n: noEmailWarm, text: `warm leads have no email address, so no reminder can fire for them. Hand this list to Monty (Apollo / Sales Nav) this week.` });
+  const ghosts = open.filter((l) => (l.noReply || 0) >= 3).length;
+  if (ghosts) suggestions.push({ n: ghosts, text: `leads have gone quiet 3+ times. Stop emailing — switch channel (LinkedIn, phone) or switch contact within the organisation.` });
+  const untouched = leads.filter((l) => l.stage === "new").length;
+  if (untouched > 50) suggestions.push({ n: untouched, text: `leads are untouched. Don't blitz them — a steady 10 first-touches per week from the cold queue keeps the top of the funnel filling without burying the warm work.` });
+
+  const Panel = ({ title, children, wide, note }) => (
+    <div style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: 12, padding: "16px 16px 12px", flex: wide ? "1 1 100%" : "1 1 340px", minWidth: 0 }}>
+      <Eyebrow style={{ marginBottom: 12 }}>{title}</Eyebrow>
+      {children}
+      {note && <div style={{ fontSize: 12, color: C.ink40, marginTop: 8, lineHeight: 1.45 }}>{note}</div>}
+    </div>
+  );
+
+
+  return (
+    <div>
+      <div style={{ display: "flex", gap: 18, flexWrap: "wrap", marginBottom: 16 }}>
+        {[["Response rate", respRate + "%", C.deepEmerald], ["Reply → meeting", mtgRate + "%", C.forest], ["Proposals out", proposals, C.forest], ["Proposal → win", propToWin + "%", C.emerald], ["Won", won, C.emerald]].map(([lab, n, col]) => (
+          <div key={lab}><div style={{ fontSize: 24, fontWeight: 700, color: col, lineHeight: 1.1 }}>{n}</div><Eyebrow>{lab}</Eyebrow></div>
+        ))}
+      </div>
+
+      <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+
+        {/* suggestions tile */}
+        {suggestions.length > 0 && (
+          <div style={{ background: C.forest, borderRadius: 12, padding: "18px 20px", flex: "1 1 100%" }}>
+            <Eyebrow style={{ color: C.emerald, marginBottom: 12 }}>Suggestions — how to lift conversion this week</Eyebrow>
+            <div style={{ display: "grid", gap: 12 }}>
+              {suggestions.slice(0, 5).map((s, i) => (
+                <div key={i} style={{ display: "flex", gap: 14, alignItems: "baseline" }}>
+                  <span style={{ fontFamily: font.display, fontWeight: 700, fontSize: 20, color: C.emerald, minWidth: 44, textAlign: "right" }}>{s.n}</span>
+                  <span style={{ fontSize: 13.5, lineHeight: 1.55, color: C.salt }}>{s.text}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <Panel title="Deal flow — leads reaching each stage (cumulative)" wide
+          note="Cumulative: a lead at Priced Prop also counts in Contacted, Responded and Initial Mtg — this shows funnel drop-off. For where deals sit right now, see the table below (it matches Pipeline and All leads).">
+          <div style={{ width: "100%", height: 250 }}>
+            <ResponsiveContainer>
+              <BarChart data={reached} margin={{ top: 18, right: 8, left: -18, bottom: 0 }}>
+                <XAxis dataKey="name" tick={{ fontSize: 11, fill: C.pine, fontFamily: "Inter" }} axisLine={{ stroke: C.line }} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: C.ink40 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                <Tooltip contentStyle={{ borderRadius: 10, border: `1px solid ${C.line}`, fontFamily: "Inter", fontSize: 13 }} />
+                <Bar dataKey="count" radius={[6, 6, 0, 0]}>
+                  {reached.map((d, i) => (
+                    <Cell key={i} fill={d.name === "Won" ? C.deepEmerald : d.name === "Lost" ? "#C0492C" : C.emerald} fillOpacity={d.name === "Lost" ? 0.75 : 1 - i * 0.07} />
+                  ))}
+                  <LabelList dataKey="count" position="top" style={{ fontSize: 12, fontWeight: 700, fill: C.forest, fontFamily: "Inter" }} />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </Panel>
+
+        <Panel title="Pipeline mix">
+          <div style={{ width: "100%", height: 220 }}>
+            <ResponsiveContainer>
+              <PieChart>
+                <Pie data={mixData} dataKey="value" nameKey="name" innerRadius={50} outerRadius={82} paddingAngle={2} stroke={C.salt} strokeWidth={2}>
+                  {mixData.map((d, i) => <Cell key={i} fill={d.color} />)}
+                </Pie>
+                <Tooltip contentStyle={{ borderRadius: 10, border: `1px solid ${C.line}`, fontFamily: "Inter", fontSize: 13 }} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", padding: "4px 0 6px" }}>
+            {mixData.map((d) => (
+              <span key={d.name} style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, color: C.pine }}>
+                <span style={{ width: 9, height: 9, borderRadius: 99, background: d.color }} /> {d.name} · {d.value}
+              </span>
+            ))}
+          </div>
+        </Panel>
+
+        <Panel title="Warm leads by sector">
+          <div style={{ width: "100%", height: 220 }}>
+            <ResponsiveContainer>
+              <BarChart data={sectorData} layout="vertical" margin={{ top: 0, right: 26, left: 8, bottom: 0 }}>
+                <XAxis type="number" hide />
+                <YAxis type="category" dataKey="name" width={92} tick={{ fontSize: 11.5, fill: C.pine, fontFamily: "Inter" }} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={{ borderRadius: 10, border: `1px solid ${C.line}`, fontFamily: "Inter", fontSize: 13 }} />
+                <Bar dataKey="count" fill={C.emerald} radius={[0, 6, 6, 0]} barSize={16}>
+                  <LabelList dataKey="count" position="right" style={{ fontSize: 12, fontWeight: 700, fill: C.forest, fontFamily: "Inter" }} />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          {sectorData.length === 0 && <div style={{ fontSize: 13, color: C.ink60, paddingBottom: 12 }}>No warm leads with sectors yet.</div>}
+        </Panel>
+      </div>
+    </div>
+  );
+}
+function LeadDetail({ lead, update, setStage, openDraft, snooze, logAction, onAi }) {
+  const a = nextActionFor(lead);
+  const field = (label, key, placeholder) => (
+    <div style={{ flex: "1 1 45%" }}>
+      <label style={{ fontSize: 11.5, fontWeight: 600, color: C.ink40, textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: font.display }}>{label}</label>
+      <input value={lead[key] || ""} placeholder={placeholder} onChange={(e) => update(lead.id, { [key]: e.target.value })}
+        style={{ width: "100%", padding: "8px 10px", borderRadius: 8, border: `1px solid ${C.line}`, fontSize: 13.5, marginTop: 3, background: "#fff" }} />
+    </div>
+  );
+  return (
+    <div>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+        <h2 style={{ fontFamily: font.display, fontSize: 24, margin: 0, fontWeight: 700 }}>{lead.org}</h2>
+        <StageChip stage={lead.stage} />
+        {lead.pd && <span style={{ fontSize: 11.5, color: C.ink40, border: `1px solid ${C.line}`, borderRadius: 999, padding: "2px 8px" }}>In Pipedrive</span>}
+      </div>
+      <div style={{ margin: "10px 0 4px" }}><StageDots stage={lead.stage} /></div>
+
+      {a && (
+        <div style={{ background: "rgba(28,186,136,0.1)", border: `1px solid rgba(28,186,136,0.35)`, borderRadius: 10, padding: "10px 14px", margin: "14px 0", fontSize: 13.5 }}>
+          <b style={{ color: C.deepEmerald }}>{a.verb}.</b> {a.why(a.days)}
+          <div style={{ marginTop: 8, display: "flex", gap: 6, flexWrap: "wrap" }}>
+            <Btn kind="primary" small onClick={() => openDraft(lead, a.template)}>{actionLabel(a.template)}</Btn>
+          </div>
+        </div>
+      )}
+      {(lead.noReply || 0) >= 3 && lead.stage !== "won" && lead.stage !== "lost" && (
+        <div style={{ margin: "12px 0" }}>
+          <div style={{ fontSize: 12.5, color: C.red, marginBottom: 6 }}>Gone quiet {lead.noReply} times — worth a fresh angle.</div>
+          <Btn small onClick={onAi} style={{ color: C.deepEmerald }}>✨ AI suggest</Btn>
+        </div>
+      )}
+      <div style={{ fontSize: 12, color: C.ink40, marginTop: 4 }}>
+        {lead.createdAt ? `Added ${fmtTs(lead.createdAt)}` : ""}{lead.lastTouch ? ` · Last touch ${fmtTs(lead.lastTouch)}` : " · No touch logged yet"}
+      </div>
+
+      <Eyebrow style={{ margin: "18px 0 8px" }}>Move stage</Eyebrow>
+      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+        {STAGES.filter((s) => s.key !== "new").map((s) => (
+          <Btn key={s.key} small kind={lead.stage === s.key ? "dark" : "ghost"} onClick={() => setStage(lead.id, s.key)}>{s.label}</Btn>
+        ))}
+      </div>
+
+      <Eyebrow style={{ margin: "20px 0 8px" }}>Details</Eyebrow>
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+        {field("First name", "first")}
+        {field("Surname", "last")}
+        {field("Job title", "title")}
+        {field("Email", "email", "add an email to unlock drafts")}
+        {field("Sector", "sector")}
+        <div style={{ flex: "1 1 45%" }}>
+          <label style={{ fontSize: 11.5, fontWeight: 600, color: C.ink40, textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: font.display }}>Owner</label>
+          <select value={lead.owner} onChange={(e) => update(lead.id, { owner: e.target.value })} style={{ width: "100%", padding: "8px 10px", borderRadius: 8, border: `1px solid ${C.line}`, fontSize: 13.5, marginTop: 3, background: "#fff" }}>
+            {OWNERS.map((o) => <option key={o}>{o}</option>)}
+          </select>
+        </div>
+      </div>
+      {lead.other && <div style={{ fontSize: 12.5, color: C.ink60, marginTop: 8 }}>Other contacts: {lead.other}</div>}
+
+      <Eyebrow style={{ margin: "20px 0 8px" }}>Notes</Eyebrow>
+      <textarea value={lead.notes || ""} onChange={(e) => update(lead.id, { notes: e.target.value })} rows={3} placeholder="Context, blockers, who else is involved…"
+        style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: `1px solid ${C.line}`, fontSize: 13.5, background: "#fff", resize: "vertical" }} />
+
+      <div style={{ display: "flex", gap: 8, margin: "16px 0", flexWrap: "wrap" }}>
+        <Btn small onClick={() => snooze(lead.id, 7)}>Snooze 1 wk</Btn>
+        <Btn small onClick={() => { const n = prompt("Log an activity (call, meeting, LinkedIn…)"); if (n) logAction(lead.id, n); }}>Log activity</Btn>
+      </div>
+
+      <Eyebrow style={{ margin: "16px 0 8px" }}>History</Eyebrow>
+      <div style={{ display: "grid", gap: 6 }}>
+        {(lead.log || []).length === 0 && <div style={{ fontSize: 13, color: C.ink40 }}>No activity logged yet.</div>}
+        {(lead.log || []).map((e, i) => (
+          <div key={i} style={{ fontSize: 13, display: "flex", gap: 10 }}>
+            <span style={{ color: C.ink40, flexShrink: 0, fontVariantNumeric: "tabular-nums" }}>{fmtTs(e.ts || e.date)}</span>
+            <span style={{ color: C.pine }}>{e.note}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+
+ReactDOM.createRoot(document.getElementById("root")).render(<PhantmCRM />);
+
+</script>
+</body>
+</html>
