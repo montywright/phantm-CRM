@@ -1,13 +1,20 @@
-<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow"><title>Phantm Lead Engine</title>
+<link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAC7ElEQVR42u1WW0tUURT+1t7nzHHGuZQZ1ECRZRT0Et2xO4SUYNen6iWCHnqpoIKCAushiv5BD12pQDAa6aIZkkFBQYFp0hXKdHImH8IZZ3Rm9lo9qEOko81Qb35Pm3P2Wd/+1trrW4cQnIb/CYX/jEmCCWHlfCNjPaSxtxEglC9BDr0EUkoBYGYWkcIVjI6ulBjD/f3GGBDBspTHTUox8z8gUJbivrjLU7xs3fq5ZWWcMe0db9+8aYVWyl0khgshyGaVtOK+n6tXb7hw+szKZcstywIQTyQamhqPnjrZGf6m3cVGOEeQHJ1MAgFAsGzLxOJVmyrv3Kp16T8P1Pquo3rX9u5IhB17zDgaPk/O4xNA4L4YSF88d77YKYpEopdvXDtRc7qu/m5g6pTyueUzS6f7A/5QKATHVYACsS178cJFJV5/YIoPGcPMXT3f2z9/iEd6bI+vsf7++lUVPdFoRVXl10g4vxoQkWSM1+epvXpjTjBoIHqkKAeOH7ly5VI6lbx+++bGijXTS0sXzJ+fN8FIkiSdHhQRMAPUHQ7DUrH+GLSGpEkAgKnAPqCsFCLKQJRSjc2Pj5w4FuMMkoOO49m3Zy8z9/b2fvj0qfA+ICIR4XSGiqy9u3f3DSTq7oX87uKD+w+sq1gD4OGjxi8fP+a+LDmKrKA5kyoJBF42t5QFZ9WcPXPo0OHSkhIABqJAQwLb37/bsqO6+0dUXHaBbsrMSqnQk6aqnVtfvH6VEdEgAhIDydo7dVW7tnVFw6rIyTtFQ+5IgBIA8AYCzx80rN26ecWSpeXzylOpVHtbW1trK2yt3J5hdyqgBkqGay1pVl6PIXr2tOVZ82OA4DjK5xWADY/l439HwAQDGXJlZtZE2ucjIhEI8/g++lcEAkBrIgIBIhAYZkh+I2QCgv5kYjA1KMxZA8wLOa8phCBiaZo9I+jYrs7v4cRAUrTKY5pORDCySKUgAtuGVuMJyHsmZz/43Ydp8sdrkmA0fgHKDTkZHrYiFwAAAABJRU5ErkJggg==">
+<link rel="apple-touch-icon" sizes="180x180" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAIAAACyr5FlAAApGUlEQVR42u19+Xccx5FmHFldfaBxNECQBAiQFG+JumzLY0u+1p7xvD3mr923+9PMvF17xvIhUfLSEkVSJAWSuM9GA+g6MiP2h8yqblDURYsSIFUIjyJBHE3kV5ERX0R8gTAzCZVV9jSj6kdQWQWOyipwVFaBo7IKHJVV4KisAkdlFTgqq8BRWQWOyipwVFZZBY7KKnBUVoGjsgoclVXgqKwCR2UVOCqrwFFZBY7KKnBUVlkFjsoqcFRWgaOyChyVVeCorAJHZRU4KjumZr79l6Df9gvAo/KvQwREBAAUBQX3bT+5leeo7Ch7jsqecDTq3/Q5+7TKc1RWeY7jHfR844FQBY5nwgce+r8ePif93CPUrwsTCD4qrcBxFJ9TfKanGY+uG6rA8czAIPQJZAgDVRXCL/6otXiQERERi+PX8LE+hkREREAkn5KW7kTkK8HlSAWkFTjCgSAAhMP2iBg6U//74sgHNw8qAqrHiUcJ6jAyKs9x/LEhTkUPIQCDL0EImCk+UhVLH+EdBaqCCoqIqoKoohaRAwCiIh5fuFTg8AjwJ6oAqEOewSNAvXcQASjvHAQc8iGIRCQiw85ID/ubChzHMgYlIjQG/cmLCqgO3ynggQCIpAgQIBKQUCQXhIjMXCBDw1eCIpo5nrFq5TlCScMDwp+rqoAW+CHCAgaEqEQ+BhGVEJAiKAIRIXo/gQP4afhMrTzHMXUeKhIihsPRaDhRkVAQQ1RVDBBQJFQAEfHeQ1WdkwAO1CLdACwvrmOY61aew98BAqpAFG4ILTzK0P3i8xFFVQVEQAAiYiIAEFXn4eUkfCIhIYVw5thSHxU4hjJVREIkIiquBi2s/DAR9f6DiAjRgwNFFMA573gKZFFwNnpsibEKHKAh3vThIyGip7LCRaCBjSJEBVAVFQUAJO84QuprihzYs16qKiI+2QE9GpWSChzPFI8iemehCqrOiqjVMncdSlaHnUkgQyhkIyEQJQIi9AhSVVVCqgLSI5yqfnYQ6B9pZiYiBQURdaoi4pw6ByIgPm1RRXRIw8QZlPkuIjCTMWgMETOhApCKE1H91Cv53FerpR+rwHFE2C8Vcc45cSASIkoAIuZajYnZGDKMRIjEiOrDCA0AcnnurHPinAhkmYMcCH2kiuRDWz2+Ean5rvsMHXj94uIYxItEoKrWOpuDE0AANrVa3Go2R0Zao6Oj7ZF2q9VqNBq1WmRMREQ+nnDO5lmepen+/t5eb2+n293t9Xr7+1nShzwHIgETGUIkUVUnIdcpaFX9rFdbgeMbS0CQEIg9kwHiQACJkIkAVUTyPGSwqkxYb7Ua7ZHx8YmJsfFOpzMxPtHpTEyMT7Tb7ZFmK67XoigiYh+TWmvzLOsnSa/X29npbmysb2xsrm9sbO9sdbvd5KDfz5J8vw+qwIxsiELk4QkUT5vqIFE6ohgxR/mxf3ZgqAIIoqGIVcHlDpwFRSSM2BCSZFmeW3UOjWm1RqY6E6dPnpqZnZ09M3fyxPTk5MRYe6zdbjdbrWajHsdxFEWGjY9JVdWKc7nNsqyf9PcP+t3uzs7OzvrG+vr6xtLK8vLS8tLS0tLycnKwB04pJkZEIgVwKqoCzP5C0zJyGSbLKnA8P4gUcSIooxIW3IMAhtRT8jxPU1Rtt1onTkzPzMzMnzlzfv7c2fn5M/NzJyYn2+3RehzXajUTRZExzFSkuAV1oZ5WFWutdS5N06SfdHvdra3tpeWlhYWFe/cf3L9/b2l5aXNzM8kysc7UImZGRCuqzkGRNSt4Yk3L3OkoncK3vgBQn4KMvwscqAoApMCMRCCq1oK1CBhFNRBQaxlpcnxifm7u6sXLFy9cmD9z5szMmekTJ6amJpvNZi2qISEVgCgT2Ccz4OK3nn7P8qx/0N/e2V5ZXV1cWnr0+NG9e/f+9sEHDx892t3riYoSOhXnuXoEZCYmQBRV5xxoyJgBEERBVRkrcDwHcKDvq0coOrUYEETEiVodbTZPnzp17cq169devHrp8vlzZ6enpibGJxqNZqMeBwbscMFdPTOqZb4JSMSIT4QLTiTLs/2Dg97e3vb29sLDhffef//m327eu/9gZW2l29tVBDaRgDoRICRmZBJR6ywIAB0tcDC0m9+1mKNMCSQUOxCQgNQJKrRbIxfOnX/jRz/65c9+/uMf/ujK5ctzZ85MdjojrVYU1RDR3xYqWtZUh5xFALOWEEYQVeesE3EiCmCMiRuNdrs9Nj4+MdmZmOiMjo9xZJI06e3tWWuJGakISH2hrnRLWDQSKSCAUtUm+AV+5JnQ4WvuKgBgmADQ5ZYUpjqTF8+/8MPXf/iTH//4tZdfOXniZFyLImMMcaA6xXdyUYEFLCr5BUoCFVbyVeFQQ88pIAAYQCSmeqMW10Zb7elT0+OdTr1ZZ+ZPHi7sHxxYEWZGFQEQ5zzdSkW59+gwqkfOc3xtqawq+SKaKlgHopMTk6+9/MrP33rrrTfffO3lV87OzY00moSBzAQJ15Fn0we/YlF18YOs/o1g8O7icffv8pU2p2KdZaJmXB8dH2s0m81m0xhjrev3+0maigqqImKo1JQ+Y8hVfeue49sHxxdHGPjV3hCUAIjIMBskyS0BnpjsvPbyK//461//6ue/uH7txRNTU3FUI0AiwqJfIzSOIw6SynKMxHOd3ishFE3FoZmjCF2JiijV/4mRFYCR6s1Gp9MZHx+Polqapr29XpqkosJsAiVTIqwCx1cLMvArf0FGMkSMiKo2t2Pt9g9ff/23//hPv3jzZ5cvXepMTKCCzXMRx8VgQqihlSmIqqoWvVxDbTpYDDD4Bg4f0Az3HIdEBglJVDOXW2cJcWRkZHR0rD3aJsZeb6+7002SxNMcROE1aAWOpx790/3HM+UtBEiAjIgiBmik2XzxypX//l//2z//9p8vvXChUW8woljx984AHP77UWgW17L+WrzEEizFdIv4th8ME2qoIIfq/oPajYoIs2nUG5OTk+3REWvtbre719vLskxVDLH3Tlr2DyigVuD4/NPHZ/yCqEAANs3iWu3qpcu/+fWvf/Ob31y9fKUVxSKiIqDASBQSRwAd6hXHoZFIIv9RxaVBZT8QMpFv6UAsACCqgERl3KC+ZzBMtSiTqZuo3moaY2ye73S7vd2ezfLyDlMsAl+tPMfnAODv4DoQAMQRAAGePnX6N7/+9b/8j3+5evVKZCJCAlQmZmZmIh8PagghysE1BVAEAf8WxgycinXOBQiEhJmAtPAOWrSbD0onZfjBxMyE5EAVoN1uN5vN/f39brfbPziweS6hO3UoXa7A8XngeNZUGAHUWoM8OTHx6iuv/vaffvvTf/jpeLOdpomoEPjHn9B3bYmCvwDUJ6w+WgjvcCLW2czaLM+SLEuzNM2y3Oa2wEmRqxQNo4djDyhawkq/ZK0F0HZrpNlq2Tzf3e1ubW/v7++Lc0jkLzU9MuA4erUVfBZADFgq/wgiNer1ixcuvvXmmy+9+NJIa8QHA354TVQ9EeIHCw6lJwAK6tyA6Ozt7x30+3meZzYXEVAgImPYRFGjXm+PtNvtdqvVqtVqJsythLaAIi/1ve1CzIRAhAhkiCc7ky9fv76xsb66utrb3e31ehK6y45Q39ixL9lj0b/rx1QVlJCQTbvdvnz50htvvHFu9oyCptYqgICiOKee20JCYkIpRpCQEFRVXJIm2zs7i0tLCw8XHi0+Xl1f3+v1kiwVEQQ0hmtxvdlodDoTszOz8/Pzc2fmJicnW80mE4OCqAAA++gE0bAREA9ND34nLmZzdm7+5evX7969u7a6mmfZQZr4ccuvjw38/oCjTCeHqh6l7y57IvzvxkZHL1y4cP369YsXL4yOjCTglJA5QkCU0N/pQwE/xqgiaBAADvoHO7u7S8vLCw8X7n788Z2P7y4sLKysrvT29tI8BUVCNMZEUa3RqE92OnNn5i5cuHDlypXz586dmZ2d6ky1mi1CdM4q+DlZYgbymYgGByXqSKndGjk7P//i1WvLi0u9Xq+/nopzQnyYCavA8YXAQERCUQAQX5QCChmjKoA68APOiiCKCCdPnHj99devXnux3mhkoE5ERaiYMRFxAMCoTkRUnHOIyMRpli2urHx468Mb77334Ue3FhYWVtfXdnu9fv9AnAMEIEYiAvRV1ceLi/fuP/jbhx+cv3nu2pUrr7/+g9deefX8C+drXFP1r8mP4atzDgCJ/ZyLOhFEZICpyakXr15dXlxcXl7e3t5Js0RVmVlVFKSSYPhKCAFAAhnUMYIghoZUk4kR0DC3Wq3x8XFVffT4cS2O1YlKQIAqiLNIaIihaBI3zKq6tbPz4a1bf7nxl3fevfHgwYNur+ucAyZiMjWDzL41FEScc+Jckqb9fn9jY31pcfHRw4ebW9v9JBGVs/PzzXoLAETFt3+IqE9wydfUEADAqdbj+vz8/MULFz788MNHi4v7eeo8p17FHF+lVKI+0kRAIFYMs6zkq9wmYt9/QSzEhjlJkoVPPolN1G63RTVNEpfnRBSZiIictYAQkVEVUfVcRT9JlleWb9+9c/fjj5eWlw/6fWITxTExCYCAgIJTCTEpUxSZGoCKpP202929ndztp+n2zs7O9vavfvnL69eu141JJYzjs+8XKqJf3zVoVWommpqampubn52d7Ty4v9vf37dZ6PfASvbpy+NDxKchvnQpIqBOARhRkRR82peLiEVcWlz6Y5rd+/jjZqPprPVcAhLVajVCctYCALPxLKdhg4T9frKxtbm6utLd3XWqURzH9RiZfM8XAHk+q6BgmY0xTITEHCX9gyzLHi8t7e3t7/V6tSgaa4+dm5tjMqJOVCKOaCjE9CGIiGPiRtyYmpo6ferU1OTU6tbW/l4mIljOb1fg+JLeQ1QRwRcymChkpQKq4vwgiQvRZtZPutvbCw8XDLPL8zzL1Akys2EEFOv80x/m0oiYGRDyPE+zTFWpZojRiXPOOnGqCkSeHvE3ghXnMpchktdrYTZx7FRXV1eSNGk0m+3RsVr9v8ydmmGgxFllfWIeRVXFCRiNjZmc6MzOzp46dXJheWn7YM+pgPqun2/5ejl6JBh+ZrwBXjpH1LOf6KtfTtQJiGc1gQmZSEVtmmZpkiRJ1j+waeqcc6pOXJ5mWZrmWZ5bl2d5nqZ5kmRZ6sQREUdRFEWmFgGCc+LUaVFi1TIfCnORKiLWOlUxzLV6PYqi3Np+v39wcGAiMzc/P3t6xhBnfrxFhEMpMLBc4py/bpxzO93uytra0urqdm/XOYsKhtl+2+A4JtlKmbIq1KJopNUabbcbcYMR1ToQDQX6wImjU7U2V1REFHEqGpmoFkUI6Ky11iKiYQMK1lnrrKIaE5koAkQRseqstVYFCEU0zbK9g/1er5dkGaiEagsxFJ3GTpVUiChu1F2Wr66tvff++6+++uqFF16Ymz6NiEmWImJkDCN7sgQQQvYEWq/Xp09Mnzp1emxsLIqiJE2OCBFmjsudoiLghKOoM9G5+MIL165eOzc3Pz46xogqQghM7AdTRUQRMPypKHoZY5BU1OVWVIjYMCOEGDOo8BAp+skDseKciiL0er0HCwu3Prp1+86dJEnAWTBGfQ0VgQyDEADmeS4qkYlMo97r7j589Oivf/3r1WtXJ9pjjVqcMTvrSn3CYk6fEcA5Z4zpTHSmT0yPj4/Hcdzb6xXTuBU4viQ7LgqiRDwxNnbp4sVf/OznP/rBD+Zmz8SA4gsRoeIm1log4CiiAX3qFVWcs05FvUQTkx9bCEUy61xg05l8iUYBLMjS8tLbf/rj/v7+wsICiIAqelkfUUCMjCEkcWKTxKYpxFJrNJFp/2D/1ke3/vr++5cvXDx/+kytFmeQBRG6wJQWnsOJMWZ0dLTTmRgdHY3jGBBDul6B48tSHEQKTqzzvRGtZnN8dLQ1rLEUgiiqce0zQhgGw58V4Bh+6o+Ckk6n1WwyovpeZWPQMDgLTgBIDWNkjAFQyZ2zqpDnSGitffjw4Ucf3V7f3Dx/+kxsIhUlpGLcTQcjMABE1GzW2+2RVqtVr9eZ2Vl3FCZsjw9DaozLcrE2TdKD/f293d2d7Z1GXDeILncIUDOGi4K7+DI6wEDurVDmId+kAaTq502cn5qVINiDquK8qCQSA+/39pL9fc+UAACwQWP8lD0AqqhzlgGJiONYRKyzxhhS3On1FpeWtra2rCojGo9LHYTXg38aQBRFcRw3Go16HDMbB5mq+9bXFphjcad4+ssNStnIRIzop9+R1BOjXheycN2CoZwxoAyw7AoFBAVCCGJgoJ6+RCIREHEoSgyGsMYmiiLfrAV+XgEJjMEoCvFNkoh1gOQlGFC0HtcRsNfrbW5ubu9sJy5vmRoSikqIZ2Ggd+svF2aOa7VGvV6LY2KCkOhW4PgqRujpbF/kICIySF4hhf3IfGjqBEUKkZ/v8TyU9fj/lACJ2J+4ApDvxfBDrZ6OJ2JCJjbEjDgo+xGB5yFExDmwFtmYotUUmVFUM7t/sN/v9zOXR2ScOkMM+GRVrcStMVEcx3Ece8nKryiL/T0ERzlWFMJ3xaJTz7dpEobWnXCXhJocoRZVF/90FogIngfUt/kgIPnAtNQoVgBAw0xKvvArfk5O/ehKoeOkov6dIGAMECEZYFabi7Wec9OD9OCgb60TKznlTiSKTTHacLgy4JuijYlqtSiKmDnM6lXgeNYopOwJBiUAeTqB9vRuwxJGnloTUZWyQdCTrgKKRAjknLPWOufU30P+ThD1mYsv1QITAKmqfxnOOZfl/gOcc846qIU+jQCFQp2y0LINyUvRho6fSQZ+78Chh38WQ0/Mp0YRVbW8BIYEYf0sCQECofjmLg1PuJZK9cV38cNLoQpGAOCsFXHIRMyAJKK55AJKxjBhOaQkEPoCDj/5YRxX1Hm/ZtgQkgMAhlotQgBVMWwUBQCcOEQf3oDvSZaB01LnJYb8tzoCtdmj4Dm+1EabwTwJHBJvHEwhhgAPh0QYPvXlRMurByiAy0QRgPH0BgAwEQELCAIzQFyvx/U4imtkuBhrleJVKHpxGGtBgdggIJAfcwSIuNlsNuuNOI4NsSsC63DqhQ8J7T8AubNZlud5Ls5H3lR5ji8OO3CgXf9UEOkAJIpPqcgMfaAWLFYpXgxSTCaJABEAOFDxixQIFNipABEy+wbVIDVZyEdhkHMBVPXTts4JKhBiVG+MjY6Nj421Gg0EFCdMzB5Mqv7bEpEHUg6SpGmSJFmalnIMFTi+gdikRJBfiOGxgKrqbJ4mWT9J0jy1zoXaHaKgiqoSRSba7u34BvE0y0AEgIEIgXVoOh4pfA6AogIhRTU2DTMxPj4+NhYBOVDnnKdTIej76GDMFiC3eZIk/X4/TVPrbBVzfBOc++Dq8d1jVM7UgnM2y/Od3e7CwsLiynK/30ciIAAiRRBVYDJxbW9v7/ad22tra0meDmJcJKRisgHADyaIaBh8E8emdnr65LmzZ8c7E1gqaD/tpvMuKEvSfv+g3z9I0sQ55wFXgeN5wUKH/1R0hFNBeagT65yo7h3sf/jRrXfefWe31+MoUhBF9Ny1Z9ayLN/Y2lxZWxUAqtUEQLJcQYkZidSnLWEQQRkRQPN+AnH94sULr7/+2ompKe+zaDBlrX5MP0xciubq+gf9Xq+3t7eXpKl6cGAVc3yD/uPJ8EOVmBVgZ7d77/79xaUlp+rUIZMAeHE3L8FjxWXWqgJGBqzV0GzsxyQB/PQlIhOqqBMR50aarWtXr73y8itj7VGn6jlQKFZ2eIa2XN6TW7vX2+t2u729vSzNAtlXxRzPGxnl+oPAmIs4P7KM6GciW63WienpzuTkwqNH65sbSZ6ZyPiNf7k456yAAjMbg8ye7VaVMHst6iWtScEQGTS5SwFwZKJz5fLll1+6fn7+XCOKc2eJkJnRdw8IUKF26cWT+wf99c311dXV7s5OlmVBEplK9qYCx3OPTKlY/Rj06tkYwzw6NnrlypWV1dWd3d29/sH+Vt+JQ48GxECEAzgRhECZEDMh+RYT37VIgOpUwOZp3ojrly5eevMnP7l65Uq7NeLZGUIuJHKHkCtKjEyU2Wx9Y31lZWWn2/W9rkdEmNR8p91G6cML9+9n4kJ5hACg2Wy+8MILB/1+t9frp4m7K93erlNlRGYmL/kFIiqBykQyQAToKXhAZUACEKeCWq/VzszO/vQn//CrX/zqwrnzfuFG0XcO5cCjivoKISMiwP7+/vLy8uLi4k63m1uL4bqqrpXnCxBVEQibDQpVFR3a9qhKzBOdictXLvf293KbA+G9B/e3u11nLSqhYUAgJFAs5Y5BRVHViTgH4ESBAFCxPdI6eeLkD19//a2fvvXySy+NjY6Kc+S38qgOU3nO58AIiGid3dnZWVleWVtb29/fd+LYRKEBqWr2eU6kK4GGMwBRpXIV6ND6JXUiikDEExMTL734oqoiU1yv33twf3NrK83SPMu8/CMSMZKCghMvZu71VfwESmxMq9U6Ozf/yvVXfvbmm6+/9trU5CR6IkTAKxSWBCkAiFhFACILutXtPn70+PHjxY3NrSRJQhIrpaZUBY7nwsYjIWkRaQxv1PIAKdSb1KmrRbXTp04TEzI3WyNj42P3P/lkbW2t29tN88xah+iVQRWcgCgiGuaaiRpxHMf1ztjYzMzMyy9e//Ebb/zoBz+YmZnxbEehITfgyovangBixFGW54vLS/fu319cXNzd3RVriSnovXiPVIHj+cQcKqoqWghmhIskNOohailQr4oAcRyfnD6pSCPt9onpqdm7dx88eLC4vLS1vb13cGCtdX601gkC1oxp1OsjzdbE+HhnojM3e+bi+RdeevHFF69dm5+bI6Q8ywiR2Xj3UZT+hhvAiBB3d3fv3bt3+87t5ZXlJOlrEQmFCk7VCfaM3MXnRGwatOuTJM3yvF6Pm41msQp2sHPcN4WEMpoqqEZR7eSJ6VazNTU1eXZ+/v6DBwsPF5ZXVje2NvsHB0mW5taqE0PcqDfGRtud8YkTJ6ZOn5p54dy5s3Nnz8zMTHY6hFTMM1IJifD7cM+o70HJ8mxtbe2jO3fu3L27sbmZ2dz7lhDaVP0czwk8Ipom6erq6s7OzvT0dGuuCYjiHHmBg+LQvCYsgQ8unQBEzJ2xsVazMdWZnD09e/nixbWNja2trb29vf2kn2WZitbYtJrN0bGx8bGxzsTEiakTMydPTox3mo0GAlrnQJSNGfQCDtV3nJfuMMaJrG2u37l75/bt248XFw/6fUVERj8boUdjYdPxAwd+ttdQVaTQqJUkyYP7D+7d+/jSxYsnJicbjaazjiIarGUra+aAjIQMvqmYiEzcqMfx6OjomdnZJE36SZL0kyRN8jxT1YijRr1ebzTq9XojjuM4rtdiw4YAxIuK8dMX2JcSUGh4t9f76Pbtv7z77u07tze3tzJniUgQw94eROSKPn9ejBda5x4/fvTnP/95t9s9e+7c+bPnjDGe3wwS0kMabYjIyOjlOnIBAiRq1uqtWj0knwBOQz8YozFseEhOxqk4Z50ohoWRWILPW5mtMLED6Sfpw0eP3rlx48b77y0tLaV5DgRPoqGiz5/TveIle3a6Ox/e+nBze+vs+fONemN6eloBsjwnL4deyI+WZ1xIPJTr+Lz0ChCAATBo1JiSgBgemGEkZVRULzpZSBEr+Hf4mToAYiKkPLePHj++8d6NP7/zl9t37mzvdn3hTjFErogoqiACXAWkz8NzIPp9bN1eb3Vt7fTpmYmJ8eZIs90eFRB1IADGGHxycwYQkS+eeTIjSMSEWq4qgIoKaIhnA79WVteDrxAQ3+wlKirgxIkoceg929ndvfnB397+0x/v3vu4d7DvwK9eEHCqSJ7mD03tFTi+fseBioCiWqvViPnRo4e/+/3vOp3x5sjIpUuX6nHsZd3Ia9QWN0DJkpWb5xkLScqQXooTcWHCJXQDl9HEoPGnmK9UCYO4XrqUQROb7x8cfHDrwz+8/Yd3btxY29gARmByzlpxCIRckOtHY431d7m2QpFhwy53DxYe/Ou//zuZSBGuXb1ai2s2d7m1jiiKTAEOKKLIgcpssX8nrHDBYgqiVLAvNpmHvy0aywcuCRBNZETBidvc3Lp1+6Pf/cfv//SXPz9cfJTa3EQ13xgAREGXxnsqIv3Wa7Lf2VQWwPqpRgSIKMmyv978f1ak3mqQ4fm5ubgWM3EtigxFgBj0Bct4gkLRtRh/Ej8uYxDUL4gsC3tQzLMQlRRLMbKABAwCwJQlyfrG+l9v3vw/v/u///GHt+99cr+fJlYkd05UkZCYS7SF+XvmcmqhAsfXBw5VUcnFCoKJI27UXW6zPLv74N7//N//a21r8+dvvXXt6rVTJ09yHCmG4xUnviZP/nBCwSzEnAP/MSAttFSVxeJcnXO+PRiZvICdEqZZtryy8s6Nd//13//t7T/9ceHx4zRNuBaRMYhIUIhlO9+AxmA47HBwFTieD3euXh6aWQmpFtXrI0713ffeW1pa2t7e3tndffWVV2ZnZlrNVlyr+fFKkWJ3lwoWm1SGsaAFUHRoWfmQkn256F5JEUCTLNnc2nq8tHTzbzd/9/vf/f4P/7m4sgyIFBkkImZf/BcVEedb4QERlBSribfnlqwwYhTHSpjkmTrH9XpUj511rrf3+JMH//pvsrS6em/hkzd+8MOrly9Pn5j2s+0eD1ZExaqIAjCxMYYw7PpTUfEaYarlZJqWyx79UDeRX8ugzq5trL/z7rv/+fbb77z77oOP767ubBObWj0WUGtzcRaB0TAQAygYRFVAQsCw2qHSPn8eHKoCCkIuktpcxQKCIpo4arSayV5vZWlxZ293dXVl+fHjxR+9cfnypVPTJzudyZFWq1VvMqOAOGuD7r3XsPRBBmqpfhzEI0GVSFWZmAEBIMmy3V5vY3NzbX39zt27f3j7D2//6U8f370LNuOxsZGRESDMrFW04iyoIAIS+fssOCJRdU6cQM1U4PiaTVAt2P3kIMlzYAIiEZuLRaBMnBpD9TjLsjsf3VpbXvrgzu2XXnrp+rWXLl+6eHZu/syZubHGiAEiUxMQP0/ghxZ9QCGe6GT2U5nFiiclQAea5fnq2uqdj+/euHHj3XffvX3nzvLS0vZuF/IM4hoiJP19EVFjkNlPMahzKq5cwVNIJMpR+El+Z2MOAQUCZAYmVc3zHI3RiKNas1ZvgLX9vb315eX1nZ2VpaWH9+7funDh/Pnzly5ePH3qVGe802o2G/VGXKvVoigyhoiYDEUGCl9vJU/SJE3TLMv6Bwd+3fDm5uYnCwt37ty5efPm3z74oLuxAQA80ownxtEYUcnzTJxDAuKa13oAOERp6EDloaLP4ckRxs+4KEpqaWh/xqf2vgaWUzFC02w06l5fCwnYWKdMUqs3QDVJEkKst0fSOHYH/aWFha3llfdv3hzvTJ6ZnTkzMzs/PzczM3v65Kmpycmx9mi71arX63GtxlHkQ4o0zXq9Xrfb3dre2t7aWltdW15eXni48PjR48Wlxd3t7X6SWnHRWJuI0TAxeSqMoojiWFTEOUWF0F0Kg1nOgcB/5Tm+cjhxqCr7WbgiQOODgDBnjYH9QPQrdoCZ47ge1RJAd7Df39/r7+/trK8/fPywMzZ+4sTU9Inpqamp8fEJv0+lUW/U67GJakRonUuSdG9vr9fb3dne6e7sbG1tbWxsrK6ubm5uwF4CAFA3jbGxerMhCtZZUREBQfCjUOBAxRX/nqFsB4plTVSBAz51wk+siy98Q6lGgACkoX+zRIk+sVURQQFcZsU6cgqi4NQ3e7o8FwBkFoCDfhKa01staLVUvOatbGxvbW9vfXzvHjGHrTvG1IyJooiIAFDE5c7Z3DqbZ3nu8lyc8xIvEDF02p7itAT7aaplegugiE4kaPZ4n6EATp+k8ApnWkkwPCuQvrAbxmlYL62DUX1xKmHxszoRUEBmX8IFBRXnrNXcuixzfevbRYOMByEQQ9kIIjJ0wyEwg2GIIq7VjYkA0BdiVFxZJMFyg/VgOQwcBTLj+IAD4dMb5EM5S8NqzU+7mXLdnpZupty2NvzB6peCa0Fthv5wZ50DN3gFUQTGDC4xLNdR0xAHW7iDoZE6LylmPSDC5LSWEjODF4uH/2GfUQGowHFU+PZwwACDRaFQ1mmL7ZFD54Z+TGFIN9IvAFTPiYWqi3gVuiOydqkCx9+fAw/BQEN2VOyFlcFD/YSQKIblkN8xO7bgeKKP9O85GHxy2UWBEghrZQP9MAQHCFcSFLqVInBomyz41TB6FLr9Ks/xdbkOKX4ZAOTQAXuee1iTTIrxWxz0pEK4aRS08hzf0hUQ3vAQIaZDoy1fOfIoI1sFGM4zYKiPBwq1bFCQ4c9CT6cPAt5jjg6qnMXn5s34ff4BmCPrFeAwDVr6CR9tKB6Sugj9Ms94oPrEutri4tBPf7lB7cN/N/9wKT4tdpG/OxqqwPHlgPJlrhj8er5BsWgcSgDqkx82GMlEGG4PU3hCjexYu54jDQ7FIXarYMt1qBChT4OOwtPf/yUukUOeB4e91pNnXkang0BE9SvhuQLHN+s/nv7x+EXia74sh58OTp+GHv1sZkSHfMVgSqECx/OOCz+doRx+w8/5LB1o4H/md3hS6VgPw2BYnR2HY5FyNOEpwMGjU3v/rmYrh9LT8JhKWesEv9VCpVg8Xn4SEYWs0jmwFlT8Wp5CHRKDMKgUK52+ZFwzOPYveNl4/CnT45LK6qe1z/WJh/2wosWg7lbolAMOZJeK5efl3+rXBOTvVOp7THbZFwNEiHhoJ0khIK40yC28o3fiQIGI/cqtYumO31PsQFUJB7zXE/fOYM7xy3m2p0FCtQLHNxyNDlXih5hQ1LDj3q/+AwXwi0uICEI3L/oZaClEAUUE0G/j+u7kF9/TbOWJ+zzsglYRoGIFJKqKoqiKFNpLRTKiIqDigv9hAkBVQFQ/Ia8VNo4zOLCIH3TYb/sd9qVTl6GOmlIMLvgJvwsw6HEZDepccKyrpt97cAxWh4aals9Kyv4sOLyNxw+0EqBvGhVx4Jz6gINIRRCJmFXFWqf6qaJrZcfOc5Q0ZLkpqXQOoVlPfWm27OVVJFRQ5xw4B4hRFCGzzfNCudYnKXgUhIIrcHx9rkSLDVhMRIyhRK5e2pOQ/LiipzG0aAY2xhCztVasLS4T/GLytALHsQpGB/qNSIRemwexEE8A9uktADP7RcEgotaKc4CozoK1ighEyIVeiqpW2cqxB0cQI0ZVtdbmNs/FKpE4pypK6nPaXBySsdYCALMBInDinFNEda7YB4tIT/SFV3YEwaFfFG6UcjkAfr40TbPd3d3NzU0mExH5nDYofQFk1iKbze52v99nNliLkWmwbQ+D0psnxAYboav75diSYIPiWT9N1tfXb9++nWfZ+Nh42ImifqE9IIB1Aszdvd6De/f7/T4wo2GPD0AGOryI2uulVMg4xteKTzmJRKW3u3v//v39Xu+DDz6oGQMAKH6VuNfWIlUQpiTNHi8tbmysqwgCq4JzrnQSWpZicHi1dWVPeO2ZyW/74OkwCp5cV44a1ht5WaaIqGaiiA0i+okAgrDxAoOcFwmhFddP0jRLAJHZIJFo0NegWgQA4j0HFODAr37lfRMZ/Pfdc3zBCajXcFUNarHE1kmaHlhrPSCY2Ku1iSggYBD8UzQcRREao6out04sIBIbZgZABauuIDye2nr6vY9Uj0+2UswoApGqKhMCg4JPaAFUmXwmIkRhVp0JfMlNJcxPIwL5XWvHv8Pz+3GtfCn/OijTD8WocFh8YYhHH9K9h2PrEapr5SsDScO+8GIuYGhJ1nD+q0PNYkVppoBUVVL5TqWyUAojhfnUT7dvHa67D+q35Qzr4fdU9oVWTbxVVoGjsu9wzPHktEBlleeo7PvtOarosPIclVXgqKwCR2UVOCqrwFFZZRU4KqvAUVkFjsoqcFRWgaOyChyVVeCorAJHZRU4KqvAUVllFTgqq8BRWQWOyipwVFaBo7IKHJVV4KisAkdlFTgqq8BRWWUVOCqrwFFZBY7Kvl77/00yX1Q7OH7JAAAAAElFTkSuQmCC">
 <style>html,body{margin:0;padding:0;background:#F1F2F4;}#boot{min-height:100vh;display:grid;place-items:center;font-family:-apple-system,'Segoe UI',sans-serif;color:#224B3B;font-size:15px;}</style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prop-types/15.8.1/prop-types.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/recharts/2.12.7/Recharts.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"></script></head>
-<body><div id="root"><div id="boot">Loading the Lead Engine…</div></div><script type="text/babel" data-presets="react">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"></script>
+</head><body>
+<div id="root"><div id="boot">Loading the Lead Engine…</div></div>
+<script type="text/babel" data-presets="react">
+
 const { useState, useEffect, useMemo, useRef, useCallback } = React;
 const { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LabelList } = Recharts;
 if(!window.storage){window.storage={async get(k){const v=localStorage.getItem("phantm:"+k);if(v==null)throw new Error("nf");return{key:k,value:v}},async set(k,v){localStorage.setItem("phantm:"+k,v);return{key:k,value:v}},async delete(k){localStorage.removeItem("phantm:"+k);return{key:k,deleted:true}}};}
@@ -35,6 +42,7 @@ const C = {
   ink60: "rgba(0,26,19,0.62)",
   ink40: "rgba(0,26,19,0.42)",
   red: "#C0492C",
+  amber: "#B8860B",
 };
 
 const STAGES = [
@@ -162,6 +170,29 @@ function parseWorkbook(wb, onlyMaster) {
   return rowsToLeads(rows);
 }
 
+/* Parse the Apps Script suggestion string into a proposed stage + reason.
+   e.g. 'Demo? Calendar event "Opal technology walkthrough"' -> {stage:"demoed", ...} */
+function parseSuggestion(text) {
+  if (!text) return null;
+  const map = [
+    [/^demo\??/i, "demoed", "Demo"],
+    [/priced prop\??/i, "proposal", "Priced Prop"],
+    [/^won\??/i, "won", "Won"],
+    [/^lost\??/i, "lost", "Lost"],
+  ];
+  // a suggestion field can hold several, separated by '  |  '; take the furthest stage
+  const parts = String(text).split("|").map((p) => p.trim()).filter(Boolean);
+  let best = null;
+  for (const part of parts) {
+    for (const [re, stage, label] of map) {
+      if (re.test(part)) {
+        if (!best || STAGE_IDX[stage] > STAGE_IDX[best.stage]) best = { stage, label, reason: part };
+      }
+    }
+  }
+  return best;
+}
+
 function nextActionFor(lead) {
   if (lead.stage === "won" || lead.stage === "lost") return null;
   if (lead.snoozedUntil && lead.snoozedUntil > today()) return null;
@@ -182,7 +213,7 @@ function seedLeads() {
     id: leadId(org, email, first, last),
     org, first, last, title, email, other, sector, stage,
     owner: "Unassigned", lastTouch: null, snoozedUntil: null,
-    notes: note || "", createdAt: nowIso(), log: [],
+    notes: note || "", suggestion: "", createdAt: nowIso(), log: [],
   })).filter((l, i, arr) => arr.findIndex((x) => x.id === l.id) === i);
 }
 
@@ -429,8 +460,24 @@ function PhantmCRM() {
     return out;
   }, [filtered]);
 
+  const suggestActions = useMemo(() => {
+    const out = [];
+    for (const l of filtered) {
+      if (l.stage === "won" || l.stage === "lost") continue;
+      if (l.snoozedUntil && l.snoozedUntil > today()) continue;
+      const sug = parseSuggestion(l.suggestion);
+      // only surface if it proposes moving the deal FORWARD from where it is
+      if (sug && (sug.stage === "lost" || STAGE_IDX[sug.stage] > STAGE_IDX[l.stage])) {
+        out.push({ lead: l, suggest: sug });
+      }
+    }
+    out.sort((a, b) => STAGE_IDX[b.suggest.stage] - STAGE_IDX[a.suggest.stage] || a.lead.org.localeCompare(b.lead.org));
+    return out;
+  }, [filtered]);
+
   const warmActions = actions.filter((a) => !a.action.cold);
   const coldActions = actions.filter((a) => a.action.cold);
+  // suggestions ride at the front of the focus queue: they're confirm-first, one tap to resolve
   const rotated = warmActions.length ? warmActions.slice(skip % warmActions.length).concat(warmActions.slice(0, skip % warmActions.length)) : [];
   const focus = rotated[0];
   const upNext = rotated.slice(1, 4);
@@ -500,6 +547,26 @@ function PhantmCRM() {
                 <option>All</option>{OWNERS.map((o) => <option key={o}>{o}</option>)}
               </select>
             </div>
+
+            {/* confirm-first: stage suggestions detected from Gmail/Calendar */}
+            {suggestActions.length > 0 && (
+              <div style={{ marginBottom: 18 }}>
+                <Eyebrow style={{ color: C.amber, marginBottom: 8 }}>Confirm these — spotted in Gmail &amp; Calendar</Eyebrow>
+                <div style={{ display: "grid", gap: 8 }}>
+                  {suggestActions.slice(0, 5).map(({ lead, suggest }) => (
+                    <div key={lead.id} style={{ background: C.card, border: `1px solid ${C.line}`, borderLeft: `4px solid ${C.amber}`, borderRadius: 10, padding: "11px 14px", display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                      <div onClick={() => setOpenId(lead.id)} style={{ marginRight: "auto", minWidth: 0, cursor: "pointer" }}>
+                        <span style={{ fontWeight: 700, fontSize: 14 }}>{lead.org}</span>
+                        <span style={{ color: C.ink60, fontSize: 12.5 }}> — looks like <b style={{ color: C.forest }}>{suggest.label}</b></span>
+                        <div style={{ color: C.ink40, fontSize: 11.5, marginTop: 2 }}>{suggest.reason}</div>
+                      </div>
+                      <Btn small kind="primary" onClick={() => { setStage(lead.id, suggest.stage); update(lead.id, { suggestion: "" }); bumpCleared(); }}>Confirm {suggest.label}</Btn>
+                      <Btn small kind="quiet" onClick={() => { update(lead.id, { suggestion: "" }); ping("Dismissed."); }}>Dismiss</Btn>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* THE one thing */}
             {focus ? (
@@ -1070,19 +1137,130 @@ function Insights({ leads }) {
 
   const warm = open.filter((l) => STAGE_IDX[l.stage] >= STAGE_IDX.responded);
 
-  /* ----- suggestions: learnings → actions ----- */
-  const suggestions = [];
-  const stuckProps = open.filter((l) => l.stage === "proposal" && daysSince(l.lastTouch) >= 7).length;
-  if (stuckProps) suggestions.push({ n: stuckProps, text: `priced proposals have gone 7+ days without an answer. These are the warmest deals in the book — a chase blitz here is the fastest path to revenue. Work them first in Today.` });
-  if (proposals >= 10 && propToWin < 20) suggestions.push({ n: `${propToWin}%`, text: `proposal-to-win rate. The funnel narrows hardest after pricing goes out. Consider a standard 7-day proposal walkthrough call instead of waiting for email replies.` });
-  if (contacted >= 10 && respRate < 35) suggestions.push({ n: `${respRate}%`, text: `response rate on first outreach. Test a sharper hook — APCO membership deadlines and PREP reporting requirements are landing well as urgency angles. Use AI suggest for per-lead rewrites.` });
-  if (responded >= 5 && mtgRate < 60) suggestions.push({ n: `${mtgRate}%`, text: `of responders get to a meeting. Replies are being won then lost to slow booking — send a calendar link in the first reply, not the third.` });
+  // owner breakdown across open deals
+  const ownerMap = {};
+  for (const l of open) {
+    const o = l.owner || "Unassigned";
+    if (!ownerMap[o]) ownerMap[o] = { owner: o, open: 0, warm: 0, overdue: 0 };
+    ownerMap[o].open++;
+    if (STAGE_IDX[l.stage] >= STAGE_IDX.responded) ownerMap[o].warm++;
+    const a = nextActionFor(l);
+    if (a && !a.cold) ownerMap[o].overdue++;
+  }
+  const ownerRows = Object.values(ownerMap).sort((a, b) => b.warm - a.warm || b.open - a.open);
+  const unassignedWarm = (ownerMap["Unassigned"] || {}).warm || 0;
+
+  /* ================= Tier 1 suggestions engine =================
+     Reasons across metrics instead of one at a time: stage-to-stage
+     conversion, the worst bottleneck, velocity (once dates exist),
+     owner patterns, sector signal. Each insight is scored by impact
+     and the list is sorted so the biggest lever sits on top. */
+
+  // adjacent-stage conversion from the cumulative funnel
+  const chainNames = ["Contacted", "Responded", "Initial Meeting", "Demo", "Priced Prop"];
+  const reachedCount = (name) => reached.find((r) => r.name === name)?.count || 0;
+  const steps = [];
+  for (let i = 0; i < chainNames.length - 1; i++) {
+    const from = reachedCount(chainNames[i]);
+    const to = reachedCount(chainNames[i + 1]);
+    if (from >= 4) steps.push({ from: chainNames[i], to: chainNames[i + 1], rate: Math.round((to / from) * 100), base: from, lost: from - to });
+  }
+  // won rate off proposals sits at the end of the chain
+  if (proposals >= 4) steps.push({ from: "Priced Prop", to: "Won", rate: propToWin, base: proposals, lost: proposals - won });
+
+  // velocity: only meaningful once Last touch has real dates
+  const withDates = open.filter((l) => l.lastTouch);
+  const haveDates = withDates.length >= Math.max(5, open.length * 0.3);
+
+  const S = []; // {score, metric, headline, text}
+  const push = (score, metric, headline, text) => S.push({ score, metric, headline, text });
+
+  // 1. worst bottleneck in the funnel (the sharpest drop, weighted by how many leads sit above it)
+  if (steps.length) {
+    const worst = steps.slice().sort((a, b) => (a.rate - b.rate) || (b.base - a.base))[0];
+    if (worst.rate < 60) {
+      const where = worst.to === "Won" ? "closing priced proposals" : `getting from ${worst.from} to ${worst.to}`;
+      push(100 - worst.rate + worst.base / 5, `${worst.rate}%`,
+        `Biggest leak: ${worst.from} → ${worst.to}`,
+        `Only ${worst.rate}% of ${worst.from} leads move to ${worst.to} — ${worst.lost} are stalling there. This is the single stage costing you the most deals right now. Focus this week on ${where} rather than filling the top of the funnel.`);
+    }
+  }
+
+  // 2. stuck priced proposals — warmest money, ranked high
+  const stuckProps = open.filter((l) => l.stage === "proposal" && daysSince(l.lastTouch) >= 7);
+  if (stuckProps.length) {
+    push(85 + stuckProps.length, stuckProps.length,
+      "Chase the stalled proposals first",
+      `priced proposals have gone 7+ days with no answer. These are the warmest deals in the book — a focused chase here is the fastest path to revenue. They're queued at the top of Today.`);
+  }
+
+  // 3. velocity: deals sitting past the point where they usually convert
+  if (haveDates) {
+    const wonDeals = leads.filter((l) => l.stage === "won" && l.lastTouch);
+    // rough "typical warm cycle": median days-since-touch of current warm deals as a proxy floor
+    const warmAges = warm.filter((l) => l.lastTouch).map((l) => daysSince(l.lastTouch)).sort((a, b) => a - b);
+    if (warmAges.length >= 5) {
+      const median = warmAges[Math.floor(warmAges.length / 2)];
+      const stale = warm.filter((l) => l.lastTouch && daysSince(l.lastTouch) > Math.max(21, median * 2));
+      if (stale.length >= 3) {
+        push(70 + stale.length, stale.length,
+          "Deals going cold from age",
+          `warm deals haven't been touched in over ${Math.max(21, median * 2)} days — well past your typical active window. Statistically these are slipping away. Either re-engage with a new angle now or mark them lost and free the attention for live ones.`);
+      }
+    }
+  }
+
+  // 4. owner pattern: a standout or a straggler on warm-deal conversion
+  const namedOwners = ownerRows.filter((o) => o.owner !== "Unassigned" && o.warm >= 3);
+  if (namedOwners.length >= 2) {
+    const byWarm = namedOwners.slice().sort((a, b) => b.warm - a.warm);
+    const overloaded = byWarm.find((o) => o.overdue >= 4 && o.overdue / o.warm > 0.5);
+    if (overloaded) {
+      push(60 + overloaded.overdue, overloaded.owner,
+        "One owner is overloaded",
+        `is carrying ${overloaded.warm} warm deals with ${overloaded.overdue} already overdue for action. Warm leads waiting on a busy owner go cold — redistribute a few, or clear their queue first in Today.`);
+    }
+  }
+  if (unassignedWarm) {
+    push(55 + unassignedWarm, unassignedWarm,
+      "Warm leads with nobody on them",
+      `warm leads have no owner. Unowned deals slip between people — assign each one so someone is accountable for the next step.`);
+  }
+
+  // 5. sector signal: where warm density is concentrated, aim the cold queue there
+  if (sectorData.length >= 2 && sectorData[0].count >= 4) {
+    const top = sectorData[0];
+    const share = Math.round((top.count / warm.length) * 100);
+    if (share >= 25) {
+      push(45 + top.count, top.name,
+        "Your warm pipeline leans one sector",
+        `${share}% of warm leads are in ${top.name}. Whatever's resonating there is working — weight this week's cold outreach toward ${top.name} rather than spreading it evenly.`);
+    }
+  }
+
+  // 6. earlier-funnel rates, lower priority than the bottleneck view
+  if (contacted >= 10 && respRate < 35) {
+    push(40, `${respRate}%`, "First-touch response is soft",
+      `response rate on first outreach. Test a sharper hook — APCO membership deadlines and PREP reporting requirements land well as urgency angles.`);
+  }
+  if (responded >= 5 && mtgRate < 60) {
+    push(38, `${mtgRate}%`, "Replies aren't becoming meetings",
+      `of people who reply get to a meeting. You're winning interest then losing it to slow booking — put a calendar link in the first reply, not the third.`);
+  }
+
+  // 7. hygiene: missing emails, ghosts, cold-queue pacing (lowest priority)
   const noEmailWarm = warm.filter((l) => !l.email).length;
-  if (noEmailWarm) suggestions.push({ n: noEmailWarm, text: `warm leads have no email address, so no reminder can fire for them. Hand this list to Monty (Apollo / Sales Nav) this week.` });
+  if (noEmailWarm) push(30, noEmailWarm, "Warm leads with no email on file",
+    `warm leads have no email address, so no reminder can fire for them. Hand this list to Monty (Apollo / Sales Nav) this week.`);
   const ghosts = open.filter((l) => (l.noReply || 0) >= 3).length;
-  if (ghosts) suggestions.push({ n: ghosts, text: `leads have gone quiet 3+ times. Stop emailing — switch channel (LinkedIn, phone) or switch contact within the organisation.` });
+  if (ghosts) push(28, ghosts, "Repeatedly ghosted leads",
+    `leads have gone quiet 3+ times. Stop emailing — switch channel (LinkedIn, phone) or switch contact within the organisation.`);
   const untouched = leads.filter((l) => l.stage === "new").length;
-  if (untouched > 50) suggestions.push({ n: untouched, text: `leads are untouched. Don't blitz them — a steady 10 first-touches per week from the cold queue keeps the top of the funnel filling without burying the warm work.` });
+  if (untouched > 50) push(20, untouched, "A deep cold bench",
+    `leads are untouched. Don't blitz them — a steady ~10 first-touches a week keeps the funnel filling without burying the warm work.`);
+
+  const suggestions = S.sort((a, b) => b.score - a.score);
+  const dataThin = !haveDates;
 
   const Panel = ({ title, children, wide, note }) => (
     <div style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: 12, padding: "16px 16px 12px", flex: wide ? "1 1 100%" : "1 1 340px", minWidth: 0 }}>
@@ -1105,16 +1283,28 @@ function Insights({ leads }) {
 
         {/* suggestions tile */}
         {suggestions.length > 0 && (
-          <div style={{ background: C.forest, borderRadius: 12, padding: "18px 20px", flex: "1 1 100%" }}>
-            <Eyebrow style={{ color: C.emerald, marginBottom: 12 }}>Suggestions — how to lift conversion this week</Eyebrow>
-            <div style={{ display: "grid", gap: 12 }}>
+          <div style={{ background: C.forest, borderRadius: 12, padding: "18px 20px 20px", flex: "1 1 100%" }}>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 14, flexWrap: "wrap" }}>
+              <Eyebrow style={{ color: C.emerald }}>What to do this week — biggest lever first</Eyebrow>
+            </div>
+            <div style={{ display: "grid", gap: 14 }}>
               {suggestions.slice(0, 5).map((s, i) => (
-                <div key={i} style={{ display: "flex", gap: 14, alignItems: "baseline" }}>
-                  <span style={{ fontFamily: font.display, fontWeight: 700, fontSize: 20, color: C.emerald, minWidth: 44, textAlign: "right" }}>{s.n}</span>
-                  <span style={{ fontSize: 13.5, lineHeight: 1.55, color: C.salt }}>{s.text}</span>
+                <div key={i} style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
+                  <div style={{ minWidth: 58, textAlign: "right" }}>
+                    <span style={{ fontFamily: font.display, fontWeight: 700, fontSize: 22, color: C.emerald }}>{s.metric}</span>
+                  </div>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: 13.5, fontWeight: 700, color: "#fff", marginBottom: 2 }}>{s.headline}</div>
+                    <div style={{ fontSize: 13, lineHeight: 1.55, color: "rgba(255,255,255,0.82)" }}>{s.text}</div>
+                  </div>
                 </div>
               ))}
             </div>
+            {dataThin && (
+              <div style={{ marginTop: 14, paddingTop: 12, borderTop: "1px solid rgba(255,255,255,0.12)", fontSize: 12, color: "rgba(255,255,255,0.6)", lineHeight: 1.5 }}>
+                Once the Gmail sync has been running a week or two, deal-age and velocity insights unlock here too — they need real dates in Last touch to be meaningful.
+              </div>
+            )}
           </div>
         )}
 
@@ -1155,6 +1345,30 @@ function Insights({ leads }) {
               </span>
             ))}
           </div>
+        </Panel>
+
+        <Panel title="Deals by owner" note="Warm = responded or further. Overdue = actions waiting in Today. Unassigned deals need a name against them.">
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr>
+                <th style={{ textAlign: "left", fontFamily: font.display, textTransform: "uppercase", letterSpacing: "0.08em", fontSize: 10.5, color: C.ink40, fontWeight: 600, padding: "6px 8px", borderBottom: `1px solid ${C.line}` }}>Owner</th>
+                {["Open", "Warm", "Overdue"].map((h) => (
+                  <th key={h} style={{ textAlign: "right", fontFamily: font.display, textTransform: "uppercase", letterSpacing: "0.08em", fontSize: 10.5, color: C.ink40, fontWeight: 600, padding: "6px 8px", borderBottom: `1px solid ${C.line}` }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {ownerRows.map((r) => (
+                <tr key={r.owner}>
+                  <td style={{ padding: "8px 8px", fontSize: 13, borderBottom: `1px solid ${C.faint}`, fontWeight: 600, color: r.owner === "Unassigned" ? C.red : C.forest }}>{r.owner}</td>
+                  <td style={{ padding: "8px 8px", fontSize: 13, borderBottom: `1px solid ${C.faint}`, textAlign: "right", color: C.forest }}>{r.open}</td>
+                  <td style={{ padding: "8px 8px", fontSize: 13, borderBottom: `1px solid ${C.faint}`, textAlign: "right", fontWeight: 700, color: C.deepEmerald }}>{r.warm || "—"}</td>
+                  <td style={{ padding: "8px 8px", fontSize: 13, borderBottom: `1px solid ${C.faint}`, textAlign: "right", color: r.overdue ? C.red : C.ink40, fontWeight: r.overdue ? 700 : 400 }}>{r.overdue || "—"}</td>
+                </tr>
+              ))}
+              {ownerRows.length === 0 && <tr><td style={{ padding: "12px 8px", fontSize: 13, color: C.ink60 }} colSpan={4}>No open deals.</td></tr>}
+            </tbody>
+          </table>
         </Panel>
 
         <Panel title="Warm leads by sector">
@@ -1258,4 +1472,5 @@ function LeadDetail({ lead, update, setStage, openDraft, snooze, logAction, onAi
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(<PhantmCRM />);
+
 </script></body></html>
